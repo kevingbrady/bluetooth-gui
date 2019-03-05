@@ -1,0 +1,61 @@
+/*
+ * @NOTE: Prepend a `~` to css file paths that are in your node_modules
+ *        See https://github.com/webpack-contrib/sass-loader#imports
+ *background-color: #232c39;
+
+
+
+ */
+@import "~@fortawesome/fontawesome-free/css/all.css";
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: auto;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: snow;
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+body {
+  position: relative;
+  color: white;
+  background-color: floralwhite;
+  height: 100vh;
+  overflow-y: hidden;
+}
+
+
+
+h2 {
+  margin: 0;
+  font-size: 2.25rem;
+  font-weight: bold;
+  letter-spacing: -0.025em;
+  color: #fff;
+}
+
+p {
+  font-size: 24px;
+}
+
+li {
+  list-style: none;
+}
+
+a {
+  color: white;
+  opacity: 0.75;
+  text-decoration: none;
+  font-size: 20px;
+}
+
+a:hover {
+  opacity: 1;
+  text-decoration: none;
+  cursor: pointer;
+}
