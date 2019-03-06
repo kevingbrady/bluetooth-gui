@@ -55,6 +55,16 @@ export default class NavigationBar extends Component<Props> {
     }, 1000);
   }
 
+  shouldComponentUpdate(nextProps, nextState){
+    if(nextState.isRunningLive !== this.state.isRunningLive){
+      return true;
+    }
+    if(nextState.isRunningFile !== this.state.isRunningFile){
+      return true;
+    }
+    return false;
+  }
+
   clearCollections(){
 
     const {
@@ -190,16 +200,6 @@ export default class NavigationBar extends Component<Props> {
     })
 
 
-  }
-
-  shouldComponentUpdate(nextProps, nextState){
-    if(nextState.isRunningLive !== this.state.isRunningLive){
-      return true;
-    }
-    if(nextState.isRunningFile !== this.state.isRunningFile){
-      return true;
-    }
-    return false;
   }
 
   render(){

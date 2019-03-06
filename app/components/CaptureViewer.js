@@ -3,10 +3,8 @@ import React, { Component } from 'react';
 import ReactLoading from 'react-loading';
 import BootstrapTable from 'react-bootstrap-table-next';
 import ToolkitProvider, { Search } from 'react-bootstrap-table2-toolkit';
-import styles from './CaptureViewer.css';
 import ReactJson from 'react-json-view';
-import overlayFactory from 'react-bootstrap-table2-overlay';
-import filterFactory, { textFilter } from 'react-bootstrap-table2-filter';
+import styles from './CaptureViewer.css';
 
 const { SearchBar } = Search;
 
@@ -34,6 +32,21 @@ export default class CaptureViewer extends Component<Props> {
 
   }
 
+  shouldComponentUpdate(nextProps, nextState){
+
+    if(nextProps.isLoading || this.props.isLoading){
+      return true;
+    }
+
+    if(nextProps.tableData.length !== this.props.tableData.length){
+      return true;
+    }
+    else if(nextProps.rowSelection !== this.props.rowSelection){
+      return true;
+    }
+    return false;
+  }
+  
   getRowOptions(){
 
     return {
@@ -117,27 +130,13 @@ export default class CaptureViewer extends Component<Props> {
     return false;
   }
 
-  shouldComponentUpdate(nextProps, nextState){
-
-    if(nextProps.isLoading || this.props.isLoading){
-      return true;
-    }
-
-    if(nextProps.tableData.length !== this.props.tableData.length){
-      return true;
-    }
-    else if(nextProps.rowSelection !== this.props.rowSelection){
-      return true;
-    }
-    return false;
-  }
-
   render() {
 
       return (
         <div>
           <div className={styles.componentBody}>
               <ToolkitProvider
+                remote
                 keyField="frame_number"
                 data={this.props.tableData}
                 columns={this.columns()}

@@ -4,7 +4,7 @@ from flask import Flask, jsonify, request
 from packetCallback import captureBluetooth
 import pymongo
 import os
-
+import threading
 
 app = Flask(__name__)
 
@@ -14,6 +14,13 @@ db = MongoClient['bluetooth_data']
 
 capture = ""
 timeout = None
+
+
+@app.route("/shutdown", methods=['POST'])
+def shutdown_server():
+    main_thread_id = threading.main_thread().ident
+    os.kill(main_thread_id, 15)
+    
 
 @app.route("/capture", methods=['POST'])
 def capture_callback():
