@@ -4,6 +4,11 @@ import ReactLoading from 'react-loading';
 import styles from './Connections.css';
 import ReactJson from 'react-json-view';
 import Collapsible from 'react-collapsible';
+import { getEncryptionStatus,
+         getLinkType,
+         getKeyType } from '../middleware/connection_utils';
+
+var equal = require('fast-deep-equal');
 
 type Props = {
   connections: object
@@ -18,12 +23,12 @@ export default class Connections extends Component<Props> {
   }
 
   shouldComponentUpdate(nextProps){
-      return(nextProps.connections.length !== this.props.connections.length);
+      return(!equal(nextProps.connections, this.props.connections));
   }
 
   shouldCollapse(device_info){
 
-    var field = device_info['name'];
+    let field = device_info['name'];
     if(field === '_id'){
           return true;
         }
@@ -34,7 +39,19 @@ export default class Connections extends Component<Props> {
   render() {
 
     const { connections } = this.props;
-    var connectionDisplay = Object.keys(connections).map((key) => {
+    let connectionDisplay = Object.keys(connections).map((key) => {
+
+      if(connections[key]['encryption'] !== undefined){
+        connections[key]['encryption']  = getEncryptionStatus(connections[key]['encryption']);
+      }
+
+      if(connections[key]['link_type'] !== undefined){
+        connections[key]['link_type']  = getLinkType(connections[key]['link_type']);
+      }
+
+      if(connections[key]['key_type'] !== undefined){
+        connections[key]['key_type']  = getKeyType(connections[key]['key_type']);
+      }
 
       return(<Collapsible
                 className={styles.Collapsible}

@@ -4,6 +4,11 @@ import ReactLoading from 'react-loading';
 import styles from './Devices.css';
 import ReactJson from 'react-json-view';
 import Collapsible from 'react-collapsible';
+import { getAuthentication,
+         getIOCapability,
+         getOutofBand } from '../middleware/device_utils';
+
+var equal = require('fast-deep-equal');
 
 type Props = {
   devices: object
@@ -18,12 +23,12 @@ export default class Devices extends Component<Props> {
   }
 
   shouldComponentUpdate(nextProps){
-      return(nextProps.devices.length !== this.props.devices.length);
+      return(!equal(nextProps.devices, this.props.devices));
   }
 
   shouldCollapse(device_info){
 
-    var field = device_info['name'];
+    let field = device_info['name'];
     if(field === '_id'){
           return true;
         }
@@ -34,9 +39,22 @@ export default class Devices extends Component<Props> {
   render() {
 
     const { devices } = this.props;
-    var deviceDisplay = Object.keys(devices).map((key) => {
+    let deviceDisplay = Object.keys(devices).map((key) => {
 
       if(devices[key].device_name !== ''){
+
+        if(devices[key]['authentication'] !== undefined){
+          devices[key]['authentication'] = getAuthentication(devices[key]['authentication']);
+        }
+
+        if(devices[key]['io_capability'] !== undefined){
+          devices[key]['io_capability'] = getIOCapability(devices[key]['io_capability'])
+        }
+
+        if(devices[key]['oob_flag'] !== undefined){
+          devices[key]['oob_flag'] = getOutofBand(devices[key]['oob_flag']);
+        }
+
         return(<Collapsible
                 className={styles.Collapsible}
                 triggerOpenedClassName={styles.openedTrigger}

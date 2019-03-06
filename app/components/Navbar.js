@@ -40,7 +40,6 @@ export default class NavigationBar extends Component<Props> {
   }
 
   componentDidMount(){
-    console.log("Starting App ...");
     const {
       getDevices,
       getConnections,
@@ -50,6 +49,7 @@ export default class NavigationBar extends Component<Props> {
     this.clearCollections();
 
     setInterval(function() {
+      console.log("FETCHING DATA");
       getDevices(),
       getConnections(),
       getRawData()

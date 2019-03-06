@@ -7,7 +7,6 @@ import * as deviceActions from '../actions/devices';
 
 function mapStateToProps(state) {
   return {
-    isLoading: state.captureViewerReducer.isLoading,
     raw_data: state.captureViewerReducer.raw_data,
     tableData: state.captureViewerReducer.tableData,
     rowSelection: state.captureViewerReducer.rowSelection

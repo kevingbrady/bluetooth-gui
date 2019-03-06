@@ -1,6 +1,5 @@
 // @flow
-import { SET_LOADING,
-         FETCH_RAW_DATA,
+import { FETCH_RAW_DATA,
          DELETE_RAW_DATA,
          ROW_SELECTION } from '../actions/devices';
 import type { Action } from './types';
@@ -8,9 +7,10 @@ import getPacketOverview from '../middleware/packet_utils'
 
 const { getMongoEntry, deleteCollection } = require('../utils/mongoFunctions')
 
+var equal = require('fast-deep-equal');
+
 const initialState = {
 
-  isLoading: true,
   raw_data: [],
   tableData: [],
   rowSelection: 1
@@ -24,28 +24,29 @@ export default function captureViewerReducer(state=initialState, action: Action)
 
 switch (action.type) {
 
-  case SET_LOADING: {
-    return {...state, isLoading: action.value }
-  }
-
   case FETCH_RAW_DATA: {
       getMongoEntry(dbName, 'raw_data', {}).then(data => {
         newState.raw_data = data;
       })
 
-      if (state.tableData.length !== newState.raw_data.length){
+      if(!equal(state.raw_data, newState.raw_data)){
 
-        for(var i = 0; i < newState.raw_data.length; i++){
+        return {...state, raw_data: newState.raw_data }
 
-          newState.tableData[i] = getPacketOverview(newState.raw_data[i]);
-        }
-
-        return {...state, isLoading: false, raw_data: newState.raw_data, tableData: newState.tableData }
-
-      } else if(state.raw_data.length !== newState.raw_data.length){
-
-        return {...state, isLoading: false, raw_data: newState.raw_data }
       }
+
+      if(state.tableData.length !== state.raw_data.length){
+
+          for(let i = 0; i < newState.raw_data.length; i++){
+
+            newState.tableData[i] = getPacketOverview(state.raw_data[i]);
+          }
+
+          return {...state, tableData: newState.tableData }
+      }
+
+      console.log(state.tableData.length, state.raw_data.length)
+
       break;
     }
 

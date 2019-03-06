@@ -1,9 +1,6 @@
 // @flow
 import type { GetState, Dispatch } from '../reducers/types';
 
-
-export const SET_LOADING = 'SET_LOADING';
-
 export const FETCH_DEVICES = 'FETCH_DEVICES';
 export const DELETE_DEVICES = 'DELETE_DEVICES';
 
@@ -17,9 +14,6 @@ export const PUSH_TABLE_DATA = 'PUSH_TABLE_DATA';
 export const ROW_SELECTION = 'ROW_SELECTION';
 
 
-export function setLoading(loading){
-  return { type: SET_LOADING, value: loading }
-};
 
 export function getDevices(){
   return { type: FETCH_DEVICES }

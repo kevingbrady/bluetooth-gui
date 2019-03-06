@@ -148,7 +148,7 @@ var Events = {
 
 export default function getPacketOverview(packet){
 
-  var packetInfo = {
+  let packetInfo = {
 
     frame_number: "",
     type: "",
@@ -158,21 +158,21 @@ export default function getPacketOverview(packet){
   };
 
   packetInfo['frame_number'] = packet["number"];
-  var info = getPacketInfo(packetInfo['frame_number'], packet["layers"]);
+  let info = getPacketInfo(packetInfo['frame_number'], packet["layers"]);
+
   packetInfo['type'] = info[0];
   packetInfo['info'] = info[1];
   packetInfo['source'] = info[2];
   packetInfo['destination'] = info[3];
+
   return packetInfo;
 }
 
 function getPacketInfo(frame, layers) {
 
-      var packetType = '';
-      var packetInfo = '';
-      var direction = [];
-      //console.log(layers);
-      //Object.keys(layers).map((key) => {
+      let packetType = '';
+      let packetInfo = '';
+      let direction = [];
 
       for(let key in layers){
 

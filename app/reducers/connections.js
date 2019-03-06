@@ -5,6 +5,8 @@ import type { Action } from './types';
 
 const { getMongoEntry, deleteCollection } = require('../utils/mongoFunctions')
 
+var equal = require('fast-deep-equal');
+
 const initialState = {
 
   connections: []
@@ -22,7 +24,7 @@ switch (action.type) {
       getMongoEntry(dbName, 'Connections', {}).then(data => {
         newState.connections = data;
       })
-      if(state.connections.length !== newState.connections.length){
+      if(!equal(state.connections, newState.connections)){
         return {...state,  connections: newState.connections }
       }
       break;

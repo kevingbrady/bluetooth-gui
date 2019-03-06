@@ -1,6 +1,9 @@
 import pymongo
 from pyshark_tools import *
 
+MongoClient = pymongo.MongoClient()
+db = MongoClient['bluetooth_data']
+
 class BluetoothDevice:
 
     _id = ''
@@ -9,12 +12,11 @@ class BluetoothDevice:
     role = ''
     connections = set()
     security_manager = {}
-
-    MongoClient = pymongo.MongoClient()
-    db = MongoClient['bluetooth_data']
-    collection = db['Devices']
-
     localhost_device_names = ['Source Device Name: ', 'Destination Device Name: ', None]
+
+    def __init__(self):
+
+        self.collection = db['Devices']
 
     @staticmethod
     def getBluetoothVersion(lmp_version):
@@ -61,13 +63,12 @@ class BluetoothDevice:
 
             return sc, mitm, bonding
 
-    def entryinDatabase(self):
+    def inDatabase(self):
 
-        entry = self.collection.find_one({"bd_addr": self.bd_addr})
-        if entry is None:
+        if self._id is '':
+
             return False
 
-        self._id = entry["_id"]
         return True
 
     def updateField(self, field, value):
@@ -82,15 +83,11 @@ class BluetoothDevice:
 
     def createDbEntry(self):
 
-        if self.entryinDatabase():
-            self.updateDbEntry()
-        else:
-
-            self._id = self.collection.insert_one({
-                "device_name": self.device_name,
-                "bd_addr": self.bd_addr,
-                "role": self.role
-            }).inserted_id
+        self._id = self.collection.insert_one({
+            "device_name": self.device_name,
+             "bd_addr": self.bd_addr,
+            "role": self.role
+        }).inserted_id
 
     def getDbEntry(self):
 

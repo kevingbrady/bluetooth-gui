@@ -3,13 +3,14 @@ import React, { Component } from 'react';
 import ReactLoading from 'react-loading';
 import BootstrapTable from 'react-bootstrap-table-next';
 import ToolkitProvider, { Search } from 'react-bootstrap-table2-toolkit';
+import overlayFactory from 'react-bootstrap-table2-overlay';
 import ReactJson from 'react-json-view';
 import styles from './CaptureViewer.css';
 
+var equal = require('fast-deep-equal');
 const { SearchBar } = Search;
 
 type Props = {
-  isLoading: boolean,
   raw_data: object,
   tableData: object,
   rowSelection: number,
@@ -29,21 +30,22 @@ export default class CaptureViewer extends Component<Props> {
 
   constructor(props){
     super(props)
-
   }
 
   shouldComponentUpdate(nextProps, nextState){
 
-    if(nextProps.isLoading || this.props.isLoading){
+    if(!equal(nextProps.tableData, this.props.tableData)){
       return true;
     }
 
-    if(nextProps.tableData.length !== this.props.tableData.length){
+    if(this.props.tableData.length !== this.props.raw_data.length){
       return true;
     }
-    else if(nextProps.rowSelection !== this.props.rowSelection){
+
+    if(nextProps.rowSelection !== this.props.rowSelection){
       return true;
     }
+
     return false;
   }
 
@@ -120,7 +122,7 @@ export default class CaptureViewer extends Component<Props> {
 
   shouldCollapse(packet_info){
 
-    var field = packet_info['name'];
+    let field = packet_info['name'];
     if(field === '_id'
         || field === 'frame_info'
         || field === '_wrapped_fields'){
@@ -136,17 +138,17 @@ export default class CaptureViewer extends Component<Props> {
         <div>
           <div className={styles.componentBody}>
               <ToolkitProvider
-                remote
                 keyField="frame_number"
                 data={this.props.tableData}
                 columns={this.columns()}
-                loading={this.props.isLoading}
                 search
                 >{
                   toolkitprops => (
                     <div className={styles.captureTableContainer} data-tid="captureTableConatiner">
                     <BootstrapTable
                       {...toolkitprops.baseProps }
+                      remote={{search:true, loading:true}}
+                      overlay={overlayFactory()}
                       classes={styles.captureTable}
                       rowStyle={this.getRowStyle}
                       rowEvents={this.getRowOptions()}

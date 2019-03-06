@@ -81,13 +81,11 @@ class BluetoothConnection:
 
         self.updateField("pairing_method", pairing_method)
 
-    def entryinDatabase(self):
+    def inDatabase(self):
 
-        entry = self.collection.find_one({"handle": self.handle})
-        if entry is None:
+        if self._id is '':
             return False
 
-        self._id = entry["_id"]
         return True
 
     def updateField(self, field, value):
@@ -102,13 +100,9 @@ class BluetoothConnection:
 
     def createDbEntry(self):
 
-        if self.entryinDatabase():
-            self.updateDbEntry()
-        else:
-
-            self._id = self.collection.insert_one({
-                "handle": self.handle
-            }).inserted_id
+        self._id = self.collection.insert_one({
+            "handle": self.handle
+        }).inserted_id
 
     def getDbEntry(self):
 

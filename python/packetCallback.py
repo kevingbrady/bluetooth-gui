@@ -16,8 +16,8 @@ app = {"devices": {},
 handle = ""
 bd_addr = ""
 
-#deviceInfo = {}
-#connectionInfo = {}
+deviceInfo = {}
+connectionInfo = {}
 
 advertisingAddresses = []
 
@@ -198,7 +198,7 @@ def checkDeviceInfo(packet, role):
 
 def checkConnectionInfo(packet, role):
 
-    global bd_addr
+    global handle
     packetInfo = {}
 
     if is_layer_here(packet, "bthci_cmd"):
@@ -209,6 +209,19 @@ def checkConnectionInfo(packet, role):
 
                 handle = get_field(packet, layer, "connection_handle")
                 packetInfo.update({"handle": handle})
+
+        if is_field_here(packet, layer, "encryption_enable"):
+
+            encryption_enable = get_field(packet, layer, "encryption_enable")
+            packetInfo.update({"encryption": int(encryption_enable, 0)})
+
+        if is_field_here(packet, layer, "link_key"):
+            link_key = get_field(packet, layer, "link_key")
+            packetInfo.update({"link_key": link_key})
+
+        if is_field_here(packet, layer, "key_type"):
+            key_type = get_field(packet, layer, "key_type")
+            packetInfo.update({"key_type": int(key_type, 0)})
 
     if is_layer_here(packet, "bthci_evt"):
 
@@ -222,12 +235,12 @@ def checkConnectionInfo(packet, role):
         if is_field_here(packet, layer, "link_type"):
 
             link_type = get_field(packet, layer, "link_type")
-            packetInfo.update({"link_type": link_type})
+            packetInfo.update({"link_type": int(link_type, 0)})
 
         if is_field_here(packet, layer, "encryption_mode"):
 
             encryption_mode = get_field(packet, layer, "encryption_mode")
-            packetInfo.update({"encryption_mode": encryption_mode})
+            packetInfo.update({"encryption": int(encryption_mode, 0)})
 
         if is_field_here(packet, layer, "code"):
             if is_field_here(packet, layer, "status"):
@@ -241,7 +254,7 @@ def checkConnectionInfo(packet, role):
         if is_field_here(packet, layer, "encryption_enable"):
 
             encryption_enable = get_field(packet, layer, "encryption_enable")
-            packetInfo.update({"encryption_enable": encryption_enable})
+            packetInfo.update({"encryption": int(encryption_enable, 0)})
 
         if is_field_here(packet, layer, "link_key"):
 
@@ -251,7 +264,7 @@ def checkConnectionInfo(packet, role):
         if is_field_here(packet, layer, "key_type"):
 
             key_type = get_field(packet, layer, "key_type")
-            packetInfo.update({"key_type": key_type})
+            packetInfo.update({"key_type": int(key_type, 0)})
 
     if is_layer_here(packet, "bthci_acl"):
 
@@ -284,16 +297,23 @@ def checkConnectionInfo(packet, role):
 # ------- PACKET CALLBACK FUNCTION ------
 def captureBluetooth(packet):
 
+    global deviceInfo
+    global connectionInfo
+
+
     db['raw_data'].insert_one(toJSON(packet))
 
     direction = bluetooth_message_direction(packet)
     message_type = bluetooth_message_type(packet)
     role = ('controller', 'host')[direction == 'sent']
 
-    deviceInfo = checkDeviceInfo(packet,  role)
-    connectionInfo = checkConnectionInfo(packet, role)
+    deviceInfo.update(checkDeviceInfo(packet,  role))
+    connectionInfo.update(checkConnectionInfo(packet, role))
 
-    for entry, value in deviceInfo.items():
+    #print(deviceInfo)
+    #print(connectionInfo)
+
+    for entry, value in deviceInfo.copy().items():
 
         global bd_addr
         if bd_addr is not '':
@@ -303,59 +323,49 @@ def captureBluetooth(packet):
                     app["devices"].update({bd_addr: BluetoothDevice()})
                     app["devices"][bd_addr].bd_addr = bd_addr
                     app["devices"][bd_addr].role = role
-
-            if app["devices"][bd_addr].getDbEntry() is None:
-                app["devices"][bd_addr].createDbEntry()
-                app["devices"][bd_addr].getDbEntry()
-
-            else:
                     app["devices"][bd_addr].getDbEntry()
+
+                    if app["devices"][bd_addr].inDatabase() is False:
+                        app["devices"][bd_addr].createDbEntry()
 
             # Handle Values
             if entry == "device_name" and value == '':
 
                 value = "localhost"
-                app["devices"][bd_addr].updateField(entry, value)
 
-            elif entry == "handle" and value is not '':
+            if entry == "handle" and value is not '':
 
                 app["devices"][bd_addr].connections.add(value)
-
                 connections = list(app["devices"][bd_addr].connections)
                 app["devices"][bd_addr].updateField("connections", connections)
+                continue
 
-            else:
+            app["devices"][bd_addr].updateField(entry, value)
+            del deviceInfo[entry]
 
-                app["devices"][bd_addr].updateField(entry, value)
+    for entry, value in connectionInfo.copy().items():
 
-      #  print("[", bd_addr, "]", entry, value)
+        global handle
+        if handle is not '':
 
-    for entry, value in connectionInfo.items():
-
-        if entry == "handle":
-
-            global handle
-            handle = value
-
-            if handle is not '' and handle not in app["connections"]:
+            if handle not in app["connections"]:
                 app["connections"].update({handle: BluetoothConnection()})
                 app["connections"][handle].handle = handle
+                app["connections"][handle].getDbEntry()
 
-            if app["connections"][handle].getDbEntry() is None:
-                 app["connections"][handle].createDbEntry()
-                 app["connections"][handle].getDbEntry()
-            else:
-                 app["connections"][handle].getDbEntry()
+                if app["connections"][handle].inDatabase() is False:
+                    app["connections"][handle].createDbEntry()
 
-        if entry == "host_name" and value == '':
+            if entry == "host_name" and value == '':
 
-            value = "localhost"
+                value = "localhost"
 
-        if entry == "controller_name" and value == '':
+            if entry == "controller_name" and value == '':
 
-            value = "localhost"
+                value = "localhost"
 
-        app["connections"][handle].updateField(entry, value)
+            app["connections"][handle].updateField(entry, value)
+            del connectionInfo[entry]
 
     # Evaluate Pairing Method if data is available
 
@@ -380,5 +390,3 @@ def captureBluetooth(packet):
                             if host is not None and controller is not None:
 
                                 conn.evaluatePairingMethod(host, controller)
-
-

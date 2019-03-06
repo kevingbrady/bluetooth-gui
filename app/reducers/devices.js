@@ -6,6 +6,8 @@ import type { Action } from './types';
 
 const { getMongoEntry, deleteCollection } = require('../utils/mongoFunctions')
 
+var equal = require('fast-deep-equal');
+
 const initialState = {
     devices: []
 };
@@ -22,7 +24,7 @@ export default function deviceReducer(state=initialState, action: Action) {
         .then(data => {
           newState.devices = data;
         })
-        if(state.devices.length !== newState.devices.length){
+        if(!equal(state.devices, newState.devices.length)){
           return {...state, devices: newState.devices }
         }
         break;
