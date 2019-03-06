@@ -51,3 +51,4 @@ main.js.map
 npm-debug.log.*
 
 python/pscr_devices
+python/__pycache__
