@@ -48,15 +48,52 @@ var Commands = {
   4101: 'Read Buffer Size',
   4105: 'Read BD ADDR',
   5128: 'Read Encryption Key Size',
+  8193: 'LE Set Event Mask',
   8194: 'LE Read Buffer Size',
   8195: 'LE Read Local Supported Features',
   8197: 'LE Set Random Address',
+  8198: 'LE Set Advertising Parameters',
+  8199: 'LE Read Advertising Channel TX Power',
   8200: 'LE Set Advertising Data',
+  8201: 'LE Set Scan Response Data',
+  8202: 'LE Set Advertise Enable',
   8203: 'LE Set Scan Parameters',
   8204: 'LE Set Scan Enable',
   8205: 'LE Create Connection',
+  8206: 'LE Create Connection Cancel',
   8207: 'LE Read Whitelist Size',
-  8214: 'LE Read Remote Used Features'
+  8208: 'LE Clear Whitelist',
+  8209: 'LE Add Device to Whitelist',
+  8210: 'LE Remove Device From Whitelist',
+  8211: 'LE Connection Update',
+  8212: 'LE Set Host Channel Classification',
+  8213: 'LE Read Channel Map',
+  8214: 'LE Read Remote Used Features',
+  8215: 'LE Encrypt',
+  8216: 'LE Rand',
+  8217: 'LE Start Encryption',
+  8218: 'LE Long Term Key Requested Reply',
+  8219: 'LE Long Term Key Requested Negative Reply',
+  8220: 'LE Read Supported States',
+  8221: 'LE Receiver Test',
+  8222: 'LE Transmitter Test',
+  8223: 'LE Test End Command',
+  8224: 'LE Remote Connection Parameter Request Reply',
+  8225: 'LE Remote Connection Parameter Request Negative Reply',
+  8226: 'LE Set Data Length',
+  8227: 'LE Read Suggested Default Data Length',
+  8228: 'LE Write Suggested Default Data Length',
+  8229: 'LE Read Local P256 Public Key',
+  8230: 'LE Generate DHKey',
+  8231: 'LE Add Device to Resolving List',
+  8232: 'LE Remove Device from Resolving List',
+  8233: 'LE Clear Resolving List',
+  8234: 'LE Read Resolving List Size',
+  8235: 'LE Read Peer Resolvable Address',
+  8236: 'LE Read Local Resolvable Address',
+  8237: 'LE Set Address Resolution Enable',
+  8238: 'LE Set Resolvable Private Address Timeout',
+  8239: 'LE Read Maximum Data Length'
 }
 
 var Events = {
@@ -98,11 +135,15 @@ var Events = {
   35: 'Read Remote Extended Features Complete',
   44: 'Synchronous Connection Complete',
   47: 'Extended Inquiry Result',
+  48: 'Encryption Key Refresh Complete',
   49: 'IO Capability Request',
   50: 'IO Capability Response',
   51: 'User Confirmation Request',
   54: 'Simple Pairing Complete',
+  56: 'Link Supervision Timeout Changed',
+  61: 'Remote Host Supported Features Complete',
   62: 'LE Advertising Report',
+  255: 'Vendor-Specific'
 }
 
 export default function getPacketOverview(packet){
@@ -116,16 +157,16 @@ export default function getPacketOverview(packet){
     destination: ""
   };
 
-  var info = getPacketInfo(packet["layers"]);
+  packetInfo['frame_number'] = packet["number"];
+  var info = getPacketInfo(packetInfo['frame_number'], packet["layers"]);
   packetInfo['type'] = info[0];
   packetInfo['info'] = info[1];
-  packetInfo['frame_number'] = packet["number"];
   packetInfo['source'] = info[2];
   packetInfo['destination'] = info[3];
   return packetInfo;
 }
 
-function getPacketInfo(layers) {
+function getPacketInfo(frame, layers) {
 
       var packetType = '';
       var packetInfo = '';
@@ -142,12 +183,12 @@ function getPacketInfo(layers) {
         }
         else if(layers[key]['_full_name'] === 'bthci_cmd'){
             packetType = "Command";
-            packetInfo = getCommand(layers[key]['_all_fields']['bthci_cmd_opcode'])
+            packetInfo = getCommand(frame, layers[key]['_all_fields']['bthci_cmd_opcode'])
 
           }
         else if(layers[key]['_full_name'] === 'bthci_evt'){
             packetType = "Event";
-            packetInfo = getEvent(layers[key]['_all_fields']['bthci_evt_code'])
+            packetInfo = getEvent(frame, layers[key]['_all_fields']['bthci_evt_code'])
           }
         else if(layers[key]['_full_name'] === 'bthci_acl'){
             packetType = "ACL Data";
@@ -175,19 +216,19 @@ function getDirection(direction){
     return ['Controller', 'Host']
 }
 
-function getEvent(eventCode){
+function getEvent(frame, eventCode){
 
   if(Events[eventCode] === undefined){
-    console.log("Event: ", eventCode);
+    console.log("Frame: ", frame, " Event: ", eventCode);
   }
   return Events[eventCode];
 }
 
-function getCommand(commandCode){
+function getCommand(frame, commandCode){
 
 
   if(Commands[commandCode] === undefined){
-    console.log("Command: ", commandCode);
+    console.log("Frame: ", frame, " Command: ", commandCode);
   }
   return Commands[commandCode];
 }

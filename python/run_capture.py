@@ -20,7 +20,7 @@ timeout = None
 def shutdown_server():
     main_thread_id = threading.main_thread().ident
     os.kill(main_thread_id, 15)
-    
+
 
 @app.route("/capture", methods=['POST'])
 def capture_callback():

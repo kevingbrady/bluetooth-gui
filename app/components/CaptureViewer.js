@@ -9,7 +9,7 @@ import styles from './CaptureViewer.css';
 const { SearchBar } = Search;
 
 type Props = {
-  isLoading: bool,
+  isLoading: boolean,
   raw_data: object,
   tableData: object,
   rowSelection: number,
@@ -46,7 +46,7 @@ export default class CaptureViewer extends Component<Props> {
     }
     return false;
   }
-  
+
   getRowOptions(){
 
     return {

@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
-import routes from '../constants/routes';
-import styles from './Navbar.css';
 import $ from 'jquery';
-import buildFileSelector from '../middleware/capture_utils';
 import { ButtonToolbar,
          Button,
         } from 'react-bootstrap';
+import routes from '../constants/routes';
+import styles from './Navbar.css';
+import buildFileSelector from '../middleware/capture_utils';
+
 
 import { getCollectionCount } from '../utils/mongoFunctions'
 
