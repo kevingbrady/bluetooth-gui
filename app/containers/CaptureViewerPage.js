@@ -3,18 +3,17 @@
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import CaptureViewer from '../components/CaptureViewer';
-import * as deviceActions from '../actions/devices';
+import * as captureActions from '../actions/capture';
 
 function mapStateToProps(state) {
   return {
     raw_data: state.captureViewerReducer.raw_data,
-    tableData: state.captureViewerReducer.tableData,
-    rowSelection: state.captureViewerReducer.rowSelection
+    tableData: state.captureViewerReducer.tableData
   };
 }
 
 function mapDispatchToProps(dispatch) {
-  return bindActionCreators(deviceActions, dispatch);
+  return bindActionCreators(captureActions, dispatch);
 }
 
 export default connect(

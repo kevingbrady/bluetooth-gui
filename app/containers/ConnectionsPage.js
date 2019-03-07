@@ -1,7 +1,7 @@
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import Connections from '../components/Connections';
-import * as deviceActions from '../actions/devices';
+import * as connectionActions from '../actions/connections';
 
 function mapStateToProps(state) {
   return {
@@ -10,7 +10,7 @@ function mapStateToProps(state) {
 }
 
 function mapDispatchToProps(dispatch) {
-  return bindActionCreators(deviceActions, dispatch);
+  return bindActionCreators(connectionActions, dispatch);
 }
 
 export default connect(

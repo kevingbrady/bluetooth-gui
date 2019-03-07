@@ -1,44 +1,26 @@
-// @flow
-import type { GetState, Dispatch } from '../reducers/types';
+const { getMongoEntry, deleteCollection } = require('../utils/mongoFunctions');
 
 export const FETCH_DEVICES = 'FETCH_DEVICES';
 export const DELETE_DEVICES = 'DELETE_DEVICES';
 
-export const FETCH_CONNECTIONS = 'FETCH_CONNECTIONS';
-export const DELETE_CONNECTIONS = 'DELETE_CONNECTIONS';
+var dbName = 'bluetooth_data';
 
-export const FETCH_RAW_DATA = 'FETCH_RAW_DATA';
-export const DELETE_RAW_DATA = 'DELETE_RAW_DATA';
-
-export const PUSH_TABLE_DATA = 'PUSH_TABLE_DATA';
-export const ROW_SELECTION = 'ROW_SELECTION';
-
-
-
-export function getDevices(){
-  return { type: FETCH_DEVICES }
+export const getDevices = () => {
+  return dispatch => {
+    getMongoEntry(dbName, 'Devices', {})
+    .then(data => dispatch({
+        type: FETCH_DEVICES,
+        response: data
+      }))
+  }
 };
 
-export function deleteDevices(){
-  return {type: DELETE_DEVICES }
+export const deleteDevices = () => {
+  return dispatch => {
+    deleteCollection(dbName, 'Devices')
+    .then(response => dispatch({
+      type: DELETE_DEVICES,
+      response: response
+      }))
+  }
 };
-
-export function getConnections(){
-  return { type: FETCH_CONNECTIONS }
-};
-
-export function deleteConnections(){
-  return {type: DELETE_CONNECTIONS }
-}
-
-export function getRawData(){
-  return { type: FETCH_RAW_DATA }
-};
-
-export function deleteRawData(){
-    return {type: DELETE_RAW_DATA }
-};
-
-export function setRowSelection(value){
-  return {type: ROW_SELECTION, value: value}
-}

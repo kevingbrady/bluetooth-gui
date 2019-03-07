@@ -4,7 +4,7 @@ import ReactLoading from 'react-loading';
 import BootstrapTable from 'react-bootstrap-table-next';
 import ToolkitProvider, { Search } from 'react-bootstrap-table2-toolkit';
 import overlayFactory from 'react-bootstrap-table2-overlay';
-import ReactJson from 'react-json-view';
+import PacketViewer from './packetViewer'
 import styles from './CaptureViewer.css';
 
 var equal = require('fast-deep-equal');
@@ -12,9 +12,7 @@ const { SearchBar } = Search;
 
 type Props = {
   raw_data: object,
-  tableData: object,
-  rowSelection: number,
-  setRowSelection: () => void
+  tableData: object
 };
 
 const noDataIndication = () => (
@@ -30,6 +28,8 @@ export default class CaptureViewer extends Component<Props> {
 
   constructor(props){
     super(props)
+
+    this.state = { rowSelection: 1 }
   }
 
   shouldComponentUpdate(nextProps, nextState){
@@ -38,11 +38,7 @@ export default class CaptureViewer extends Component<Props> {
       return true;
     }
 
-    if(this.props.tableData.length !== this.props.raw_data.length){
-      return true;
-    }
-
-    if(nextProps.rowSelection !== this.props.rowSelection){
+    if(nextState.rowSelection != this.state.rowSelection){
       return true;
     }
 
@@ -55,7 +51,7 @@ export default class CaptureViewer extends Component<Props> {
         onClick: (e, row, rowIdx) => {
 
             var frame_number = parseInt(row['frame_number'], 10);
-            this.props.setRowSelection(frame_number);
+            this.setState({rowSelection: frame_number});
           }
         }
   }
@@ -120,18 +116,6 @@ export default class CaptureViewer extends Component<Props> {
 
   }
 
-  shouldCollapse(packet_info){
-
-    let field = packet_info['name'];
-    if(field === '_id'
-        || field === 'frame_info'
-        || field === '_wrapped_fields'){
-          return true;
-        }
-
-    return false;
-  }
-
   render() {
 
       return (
@@ -147,8 +131,6 @@ export default class CaptureViewer extends Component<Props> {
                     <div className={styles.captureTableContainer} data-tid="captureTableConatiner">
                     <BootstrapTable
                       {...toolkitprops.baseProps }
-                      remote={{search:true, loading:true}}
-                      overlay={overlayFactory()}
                       classes={styles.captureTable}
                       rowStyle={this.getRowStyle}
                       rowEvents={this.getRowOptions()}
@@ -164,14 +146,7 @@ export default class CaptureViewer extends Component<Props> {
                 }
                 </ToolkitProvider>
             <div className={styles.packetViewer} data-tid="packetViewer">
-                <ReactJson
-                      src={this.props.raw_data[this.props.rowSelection - 1]}
-                      theme="summerfruit:inverted"
-                      iconStyle="triangle"
-                      displayDataTypes={false}
-                      indentWidth={6}
-                      name={"Row " + this.props.rowSelection.toString()}
-                      shouldCollapse={this.shouldCollapse}/>
+                <PacketViewer packet={this.props.raw_data[this.state.rowSelection - 1]} />
             </div>
           </div>
         </div>

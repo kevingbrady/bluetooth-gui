@@ -39,23 +39,6 @@ export default class NavigationBar extends Component<Props> {
       this.fileSelector.onchange = (event) => {this.handleFileSelection(event)}
   }
 
-  componentDidMount(){
-    const {
-      getDevices,
-      getConnections,
-      getRawData
-    } = this.props;
-
-    this.clearCollections();
-
-    setInterval(function() {
-      console.log("FETCHING DATA");
-      getDevices(),
-      getConnections(),
-      getRawData()
-    }, 1000);
-  }
-
   shouldComponentUpdate(nextProps, nextState){
     if(nextState.isRunningLive !== this.state.isRunningLive){
       return true;
@@ -64,6 +47,10 @@ export default class NavigationBar extends Component<Props> {
       return true;
     }
     return false;
+  }
+
+  componentDidMount(){
+    this.clearCollections();
   }
 
   clearCollections(){
@@ -112,6 +99,9 @@ export default class NavigationBar extends Component<Props> {
         data: JSON.stringify({capture_method: 'stop',
                               capture_type: 'live'}),
         success: (response) => {
+          this.props.getDevices();
+          this.props.getConnections();
+          this.props.getRawData();
           alert(response['result']);
         },
         dataType: 'json',
@@ -130,11 +120,6 @@ export default class NavigationBar extends Component<Props> {
         url: "http://localhost:5000/capture",
         data: JSON.stringify({capture_method: 'start',
                               capture_type: 'live'}),
-        success: (response) => {
-          if(response['result'] !== 'Finished Capture'){
-            alert(response['result']);
-          }
-        },
         dataType: 'json',
         contentType: 'application/json;charset=UTF-8'
       })
@@ -161,6 +146,9 @@ export default class NavigationBar extends Component<Props> {
                 data: JSON.stringify({capture_method: 'stop',
                                       capture_type: 'file'}),
                 success: (response) => {
+                  this.props.getDevices();
+                  this.props.getConnections();
+                  this.props.getRawData();
                   alert(response['result']);
                 },
                 dataType: 'json',
@@ -193,7 +181,9 @@ export default class NavigationBar extends Component<Props> {
                             capture_type: 'file',
                             capture_file: filePath }),
       success: (response) => {
-        console.log(response['result']);
+        this.props.getDevices();
+        this.props.getConnections();
+        this.props.getRawData();
         this.setState({ isRunningFile: false })
       },
       dataType: 'json',

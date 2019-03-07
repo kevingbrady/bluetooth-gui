@@ -1,11 +1,10 @@
 // @flow
 import { FETCH_RAW_DATA,
          DELETE_RAW_DATA,
-         ROW_SELECTION } from '../actions/devices';
+         ROW_SELECTION } from '../actions/capture';
 import type { Action } from './types';
 import getPacketOverview from '../middleware/packet_utils'
-
-const { getMongoEntry, deleteCollection } = require('../utils/mongoFunctions')
+import sleep from '../middleware/capture_utils';
 
 var equal = require('fast-deep-equal');
 
@@ -22,48 +21,24 @@ var newState = Object.assign({}, initialState);
 
 export default function captureViewerReducer(state=initialState, action: Action) {
 
-switch (action.type) {
+  switch (action.type) {
 
-  case FETCH_RAW_DATA: {
-      getMongoEntry(dbName, 'raw_data', {}).then(data => {
-        newState.raw_data = data;
-      })
+    case FETCH_RAW_DATA: {
 
-      if(!equal(state.raw_data, newState.raw_data)){
+        let tableData = [];
 
-        return {...state, raw_data: newState.raw_data }
+        for(let i = 0; i < action.response.length; i++){
 
-      }
-
-      if(state.tableData.length !== state.raw_data.length){
-
-          for(let i = 0; i < newState.raw_data.length; i++){
-
-            newState.tableData[i] = getPacketOverview(state.raw_data[i]);
-          }
-
-          return {...state, tableData: newState.tableData }
-      }
-
-      console.log(state.tableData.length, state.raw_data.length)
-
-      break;
+            tableData[i] = getPacketOverview(action.response[i]);
+        }
+        return {...state, raw_data: action.response, tableData: tableData }
     }
 
   case DELETE_RAW_DATA: {
-    deleteCollection(dbName, 'raw_data').then(response => {
-      if(response !== 'Dropped raw_data'){
+    if(action.response !== 'Dropped raw_data'){
         console.log(response);
-      }})
-    return {...state, raw_data: [], tableData: [] }
-  }
-
-  case ROW_SELECTION: {
-
-    if(action.value !== undefined && state.rowSelection !== action.value){
-      return {...state, rowSelection: action.value }
     }
-    break;
+    return {...state, raw_data: [], tableData: [] }
   }
 }
 
