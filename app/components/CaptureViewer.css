@@ -80,3 +80,7 @@
   border-width: thick;
   overflow-y: scroll;
 }
+
+.packetViewer::-webkit-scrollbar-thumb {
+  background-color: lightslategrey;
+}

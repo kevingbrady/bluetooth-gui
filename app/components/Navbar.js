@@ -7,7 +7,7 @@ import { ButtonToolbar,
 import routes from '../constants/routes';
 import styles from './Navbar.css';
 import buildFileSelector from '../middleware/capture_utils';
-
+import sleep from '../middleware/capture_utils';
 
 import { getCollectionCount } from '../utils/mongoFunctions'
 
@@ -84,6 +84,19 @@ export default class NavigationBar extends Component<Props> {
 
   }
 
+  handleDataFetch(captureRunning){
+
+      let interval = setInterval(() => {
+
+        this.props.getDevices();
+        this.props.getConnections();
+        this.props.getRawData();
+        if(!captureRunning){
+          clearInterval(interval);
+        }
+      }, 2000);
+  }
+
   liveCaptureClick(){
 
     if(this.state.isRunningFile){
@@ -99,15 +112,13 @@ export default class NavigationBar extends Component<Props> {
         data: JSON.stringify({capture_method: 'stop',
                               capture_type: 'live'}),
         success: (response) => {
-          this.props.getDevices();
-          this.props.getConnections();
-          this.props.getRawData();
           alert(response['result']);
         },
         dataType: 'json',
         contentType: 'application/json;charset=UTF-8'
       })
-      //Stop Live Capture Here
+
+      // Stop Live Capture Here
       this.setState({ isRunningLive: false });
 
     } else {
@@ -125,6 +136,7 @@ export default class NavigationBar extends Component<Props> {
       })
 
       this.setState({ isRunningLive: true });
+      this.handleDataFetch(this.state.isRunningLive)
     }
   }
 
@@ -146,9 +158,6 @@ export default class NavigationBar extends Component<Props> {
                 data: JSON.stringify({capture_method: 'stop',
                                       capture_type: 'file'}),
                 success: (response) => {
-                  this.props.getDevices();
-                  this.props.getConnections();
-                  this.props.getRawData();
                   alert(response['result']);
                 },
                 dataType: 'json',
@@ -160,18 +169,17 @@ export default class NavigationBar extends Component<Props> {
 
             } else {
 
+               this.clearCollections();
               // Start File Selector Window
                 this.fileSelector.click();
-                this.clearCollections();
               }
             }
+
   }
 
   handleFileSelection = (event) => {
 
     filePath = event.target.files[0].path;
-
-    this.setState({ isRunningFile: true });
 
     //Start File Capture Here
     $.ajax({
@@ -181,14 +189,16 @@ export default class NavigationBar extends Component<Props> {
                             capture_type: 'file',
                             capture_file: filePath }),
       success: (response) => {
-        this.props.getDevices();
-        this.props.getConnections();
-        this.props.getRawData();
+
+        this.handleDataFetch()
         this.setState({ isRunningFile: false })
       },
       dataType: 'json',
       contentType: 'application/json;charset=UTF-8'
     })
+
+    this.setState({ isRunningFile: true });
+    this.handleDataFetch(this.state.isRunningFile);
 
 
   }

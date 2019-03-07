@@ -1,2 +1,0 @@
-capture_type='file' 
-capture_file=/media/sf_PycharmProjects/BluetoothSecurity/pscr_devices/SavoxHeadset.pcapng
