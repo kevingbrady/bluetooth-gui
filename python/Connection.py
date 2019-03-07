@@ -18,7 +18,7 @@ class BluetoothConnection:
         Numeric_Comparison = "Numeric Comparison (LE Secure Connection)"
 
         secureConnection = False
-        pairing_method = Just_Works
+        pairing_method = 'Unknown'
 
         if all(h in host for h in ('secure_connection_flag',
                                    'mitm_flag',
@@ -90,13 +90,14 @@ class BluetoothConnection:
 
     def updateField(self, field, value):
 
-        self.collection.update(
-            {"_id": self._id},
-            {"$set": {
+        if value not in ('', None):
+            self.collection.update(
+                {"_id": self._id},
+                {"$set": {
                     field: value
                     }
-             }
-        )
+                }
+            )
 
     def createDbEntry(self):
 

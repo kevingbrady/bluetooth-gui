@@ -18,13 +18,15 @@ export default function connectionReducer(state=initialState, action: Action) {
 switch (action.type) {
 
   case FETCH_CONNECTIONS: {
-      return {...state,  connections: action.response }
+      return {...state,  connections: action.response };
+      break;
     }
   case DELETE_CONNECTIONS: {
       if(action.response !== 'Dropped Connections'){
           console.log(action.response);
       }
-      return {...state, connections: [] }
+      return {...state, connections: [] };
+      break;
     }
   }
 

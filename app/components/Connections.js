@@ -41,19 +41,29 @@ export default class Connections extends Component<Props> {
     const { connections } = this.props;
     let connectionDisplay = Object.keys(connections).map((key) => {
 
-      if(connections[key]['encryption'] !== undefined){
-        connections[key]['encryption']  = getEncryptionStatus(connections[key]['encryption']);
+      if(connections[key]['host_addr'] === '00:00:00:00:00:00'){
+        connections[key]['host_name'] = 'localhost';
       }
 
-      if(connections[key]['link_type'] !== undefined){
-        connections[key]['link_type']  = getLinkType(connections[key]['link_type']);
+      if(connections[key]['controller_addr'] === '00:00:00:00:00:00'){
+        connections[key]['controller_name'] = 'localhost';
       }
 
-      if(connections[key]['key_type'] !== undefined){
-        connections[key]['key_type']  = getKeyType(connections[key]['key_type']);
-      }
+      if(connections[key]['host_name'] !== undefined && connections[key]['controller_name'] !== undefined){
 
-      return(<Collapsible
+        if(connections[key]['encryption'] !== undefined){
+          connections[key]['encryption']  = getEncryptionStatus(connections[key]['encryption']);
+        }
+
+        if(connections[key]['link_type'] !== undefined){
+          connections[key]['link_type']  = getLinkType(connections[key]['link_type']);
+        }
+
+        if(connections[key]['key_type'] !== undefined){
+          connections[key]['key_type']  = getKeyType(connections[key]['key_type']);
+        }
+
+        return(<Collapsible
                 className={styles.Collapsible}
                 triggerOpenedClassName={styles.openedTrigger}
                 contentOuterClassName={styles.outerContent}
@@ -68,6 +78,8 @@ export default class Connections extends Component<Props> {
                     shouldCollapse={this.shouldCollapse}/>
               </Collapsible>
               )
+
+      }
     });
 
     if(connections.length > 0){

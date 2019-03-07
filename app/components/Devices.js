@@ -41,7 +41,11 @@ export default class Devices extends Component<Props> {
     const { devices } = this.props;
     let deviceDisplay = Object.keys(devices).map((key) => {
 
-      if(devices[key].device_name !== ''){
+      if(devices[key]['bd_addr'] === '00:00:00:00:00:00'){
+        devices[key]['device_name'] = 'localhost';
+      }
+
+      if(devices[key]['device_name'] !== undefined){
 
         if(devices[key]['authentication'] !== undefined){
           devices[key]['authentication'] = getAuthentication(devices[key]['authentication']);

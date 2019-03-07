@@ -73,20 +73,34 @@ class BluetoothDevice:
 
     def updateField(self, field, value):
 
-        self.collection.update(
-            {"_id": self._id},
-            {"$set": {
+        if value not in ('', None):
+
+            self.collection.update(
+                {"_id": self._id},
+                {"$set": {
                     field: value
                     }
-             }
-        )
+                }
+            )
+
+    def updateConnections(self, value):
+
+        if value not in ('', None):
+
+            self.connections.add(value)
+            self.collection.update(
+                {"_id": self._id},
+                {"$set": {
+                    'connections': list(self.connections)
+                }
+                }
+            )
 
     def createDbEntry(self):
 
         self._id = self.collection.insert_one({
-            "device_name": self.device_name,
              "bd_addr": self.bd_addr,
-            "role": self.role
+             "role": self.role
         }).inserted_id
 
     def getDbEntry(self):

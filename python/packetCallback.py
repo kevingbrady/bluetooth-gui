@@ -8,7 +8,10 @@ from Device import BluetoothDevice
 MongoClient = pymongo.MongoClient()
 db = MongoClient['bluetooth_data']
 
-app = {"devices": {},
+app = {"devices": {
+            "host": {},
+            "controller": {}
+        },
        "connections": {}
        }
 
@@ -24,7 +27,6 @@ advertisingAddresses = []
 
 def checkDeviceInfo(packet, role):
 
-    global bd_addr
     packetInfo = {}
 
     if is_layer_here(packet, "bthci_cmd"):
@@ -40,7 +42,7 @@ def checkDeviceInfo(packet, role):
             else:
                 #print(packet.frame_info._all_fields['frame.number'], vars(packet.bthci_cmd))
                 bd_addr = get_field(packet, layer, 'bd_addr')
-                packetInfo.update({"bd_addr": bd_addr})
+                packetInfo.update({'bd_addr': bd_addr})
 
                 if bd_addr not in advertisingAddresses:
                     packetInfo.update({"address_randomized": True})
@@ -76,7 +78,7 @@ def checkDeviceInfo(packet, role):
 
                 #print(packet.frame_info._all_fields['frame.number'], vars(packet.bthci_evt))
                 bd_addr = get_field(packet, layer, "bd_addr")
-                packetInfo.update({"bd_addr": bd_addr})
+                packetInfo.update({'bd_addr': bd_addr})
 
                 if bd_addr not in advertisingAddresses:
                     packetInfo.update({"address_randomized": True})
@@ -120,8 +122,7 @@ def checkDeviceInfo(packet, role):
         if is_field_here(packet, layer, 'src.bd_addr'):
 
             bd_addr = get_field(packet, layer, 'src.bd_addr')
-
-            packetInfo.update({"bd_addr": bd_addr})
+            packetInfo.update({'bd_addr': bd_addr})
 
             if bd_addr not in advertisingAddresses:
                 packetInfo.update({"address_randomized": True})
@@ -130,13 +131,13 @@ def checkDeviceInfo(packet, role):
                 packetInfo.update({"address_randomized": False})
 
         if is_field_here(packet, layer, 'src.name'):
-            device_name = get_field(packet, layer, 'src.name')
-            packetInfo.update({"device_name": device_name})
+            src_device_name = get_field(packet, layer, 'src.name')
+            packetInfo.update({'device_name': src_device_name})
 
         if is_field_here(packet, layer, 'chandle'):
 
             handle = get_field(packet, 'bthci_acl', 'chandle')
-            packetInfo.update({"handle": handle})
+            packetInfo.update({'handle': handle})
 
     if is_layer_here(packet, "btsmp"):
 
@@ -198,7 +199,6 @@ def checkDeviceInfo(packet, role):
 
 def checkConnectionInfo(packet, role):
 
-    global handle
     packetInfo = {}
 
     if is_layer_here(packet, "bthci_cmd"):
@@ -208,7 +208,6 @@ def checkConnectionInfo(packet, role):
         if is_field_here(packet, layer, "connection_handle"):
 
                 handle = get_field(packet, layer, "connection_handle")
-                packetInfo.update({"handle": handle})
 
         if is_field_here(packet, layer, "encryption_enable"):
 
@@ -229,8 +228,8 @@ def checkConnectionInfo(packet, role):
 
         if is_field_here(packet, layer, "connection_handle"):
 
-                handle = get_field(packet, layer, "connection_handle")
-                packetInfo.update({"handle": handle})
+            handle = get_field(packet, layer, "connection_handle")
+            packetInfo.update({'handle': handle})
 
         if is_field_here(packet, layer, "link_type"):
 
@@ -290,16 +289,14 @@ def checkConnectionInfo(packet, role):
 
         if is_field_here(packet, layer, 'chandle'):
             handle = get_field(packet, layer, "chandle")
-            packetInfo.update({"handle": handle})
+            packetInfo.update({'handle': handle})
 
     return packetInfo
 
 # ------- PACKET CALLBACK FUNCTION ------
 def captureBluetooth(packet):
 
-    global deviceInfo
-    global connectionInfo
-
+    global deviceInfo, connectionInfo, bd_addr, handle
 
     db['raw_data'].insert_one(toJSON(packet))
 
@@ -313,59 +310,62 @@ def captureBluetooth(packet):
     #print(deviceInfo)
     #print(connectionInfo)
 
-    for entry, value in deviceInfo.copy().items():
+    if 'bd_addr' in deviceInfo.keys():
 
-        global bd_addr
-        if bd_addr is not '':
+        for entry, value in deviceInfo.copy().items():
 
-            if bd_addr not in app["devices"].keys():
+            if entry == 'bd_addr':
+                bd_addr = value
 
-                    app["devices"].update({bd_addr: BluetoothDevice()})
-                    app["devices"][bd_addr].bd_addr = bd_addr
-                    app["devices"][bd_addr].role = role
-                    app["devices"][bd_addr].getDbEntry()
+                if bd_addr not in app["devices"][role].keys():
 
-                    if app["devices"][bd_addr].inDatabase() is False:
-                        app["devices"][bd_addr].createDbEntry()
+                    app["devices"][role].update({bd_addr: BluetoothDevice()})
+                    app["devices"][role][bd_addr].bd_addr = bd_addr
+                    app["devices"][role][bd_addr].getDbEntry()
 
-            # Handle Values
-            if entry == "device_name" and value == '':
+                if app["devices"][role][bd_addr].inDatabase() is False:
+                    app["devices"][role][bd_addr].createDbEntry()
 
-                value = "localhost"
+                del deviceInfo[entry]
 
-            if entry == "handle" and value is not '':
+            else:
 
-                app["devices"][bd_addr].connections.add(value)
-                connections = list(app["devices"][bd_addr].connections)
-                app["devices"][bd_addr].updateField("connections", connections)
-                continue
+                if bd_addr in app["devices"][role]:
 
-            app["devices"][bd_addr].updateField(entry, value)
-            del deviceInfo[entry]
+                    print(role)
+                    device = app["devices"][role][bd_addr].getDbEntry()
+                    app["devices"][role][bd_addr].updateField('role', role)
 
-    for entry, value in connectionInfo.copy().items():
+                    if entry == 'handle':
+                        app["devices"][role][bd_addr].updateConnections(value)
+                        del deviceInfo[entry]
+                        continue
 
-        global handle
-        if handle is not '':
+                    app["devices"][role][bd_addr].updateField(entry, value)
+                    del deviceInfo[entry]
 
-            if handle not in app["connections"]:
-                app["connections"].update({handle: BluetoothConnection()})
-                app["connections"][handle].handle = handle
-                app["connections"][handle].getDbEntry()
+    if 'handle' in connectionInfo.keys():
 
-                if app["connections"][handle].inDatabase() is False:
-                    app["connections"][handle].createDbEntry()
+        for entry, value in connectionInfo.copy().items():
 
-            if entry == "host_name" and value == '':
+            if entry == 'handle':
 
-                value = "localhost"
+                handle = value
 
-            if entry == "controller_name" and value == '':
+                if handle not in app["connections"]:
+                    app["connections"].update({handle: BluetoothConnection()})
+                    app["connections"][handle].handle = handle
+                    app["connections"][handle].getDbEntry()
 
-                value = "localhost"
+                    if app["connections"][handle].inDatabase() is False:
+                        app["connections"][handle].createDbEntry()
 
-            app["connections"][handle].updateField(entry, value)
-            del connectionInfo[entry]
+                del connectionInfo[entry]
+
+            else:
+
+                app["connections"][handle].updateField(entry, value)
+                del connectionInfo[entry]
 
     # Evaluate Pairing Method if data is available
 
@@ -374,19 +374,15 @@ def captureBluetooth(packet):
         connection = conn.getDbEntry()
 
         if connection is not None:
-            if 'host_addr' in connection and 'controller_addr' in connection:
 
-                    if connection['host_addr'] in app["devices"].keys() \
-                     and connection['controller_addr'] in app["devices"].keys():
+            host_addr = connection.get('host_addr')
+            controller_addr = connection.get('connection_addr')
 
-                        host = app["devices"][connection['host_addr']]
-                        controller = app["devices"][connection['controller_addr']]
+            if host_addr is not None and controller_addr is not None:
 
-                        if handle in host.connections and handle in controller.connections:
+                host = app["devices"]['host'].get(connection['host_addr'])
+                controller = app["devices"]['controller'].get(connection['controller_addr'])
 
-                            host = host.getDbEntry()
-                            controller = controller.getDbEntry()
+                if host is not None and controller is not None:
 
-                            if host is not None and controller is not None:
-
-                                conn.evaluatePairingMethod(host, controller)
+                    conn.evaluatePairingMethod(host.getDbEntry(), controller.getDbEntry())

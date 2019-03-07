@@ -24,14 +24,14 @@ export default function captureViewerReducer(state=initialState, action: Action)
         if(action.response !== null){
 
           rawData = action.response;
-          
+
           for(let i = 0; i < rawData.length; i++){
 
               tableData[i] = getPacketOverview(rawData[i]);
           }
       }
       return {...state, raw_data: rawData, tableData: tableData }
-
+      break;
     }
 
   case DELETE_RAW_DATA: {
@@ -39,6 +39,7 @@ export default function captureViewerReducer(state=initialState, action: Action)
         console.log(action.response);
     }
     return {...state, raw_data: [], tableData: [] }
+    break;
   }
 }
 

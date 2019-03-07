@@ -18,12 +18,14 @@ export default function deviceReducer(state=initialState, action: Action) {
 
     case FETCH_DEVICES: {
         return {...state, devices: action.response }
+        break;
     }
     case DELETE_DEVICES: {
       if(action.response !== 'Dropped Devices'){
           console.log(action.response);
       }
       return {...state, devices: []}
+      break;
     }
   }
 
