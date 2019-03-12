@@ -1,4 +1,4 @@
-var Commands = {
+var HCI_Commands = {
 
   1025: 'Sent Inquiry',
   1026: 'Sent Inquiry Cancel',
@@ -96,7 +96,7 @@ var Commands = {
   8239: 'LE Read Maximum Data Length'
 }
 
-var Events = {
+var HCI_Events = {
 
   1: 'Inquiry Complete',
   2: 'Inquiry Result',
@@ -146,6 +146,19 @@ var Events = {
   255: 'Vendor-Specific'
 }
 
+var SMP_Commands = {
+    1: '(SMP) Pairing Request',
+    2: '(SMP) Pairing Response',
+    3: '(SMP) Pairing Confirm',
+    4: '(SMP) Pairing Random',
+    6: '(SMP) Encryption Information',
+    7: '(SMP) Master Identification',
+    8: '(SMP) Identity Information',
+    9: '(SMP) Identity Address Information',
+    10: '(SMP) Signing Information',
+    11: '(SMP) Security Request'
+}
+
 export default function getPacketOverview(packet){
 
   let packetInfo = {
@@ -183,16 +196,28 @@ function getPacketInfo(frame, layers) {
         }
         else if(layers[key]['_full_name'] === 'bthci_cmd'){
             packetType = "Command";
-            packetInfo = getCommand(frame, layers[key]['_all_fields']['bthci_cmd_opcode'])
+            packetInfo = getHCICommand(frame, layers[key]['_all_fields']['bthci_cmd_opcode'])
 
           }
         else if(layers[key]['_full_name'] === 'bthci_evt'){
             packetType = "Event";
-            packetInfo = getEvent(frame, layers[key]['_all_fields']['bthci_evt_code'])
+
+            let eventCode = layers[key]['_all_fields']['bthci_evt_code']
+
+            if(eventCode === '14'){
+              packetInfo = '(' + getHCICommand(frame, layers[key]['_all_fields']['bthci_evt_opcode']) + ') Complete'
+            } else{
+              packetInfo = getHCIEvent(frame, eventCode);
+            }
           }
         else if(layers[key]['_full_name'] === 'bthci_acl'){
             packetType = "ACL Data";
+
           }
+        else if(layers[key]['_full_name'] === 'btsmp'){
+            let smp_code = parseInt(layers[key]['_all_fields']['btsmp_opcode'], 0);
+            packetInfo = getSMPInfo(frame, smp_code);
+        }
         else if(layers[key]['_full_name'] === 'bthci_sco'){
             if(packetType === ""){
               packetType = "SCO Data";
@@ -216,19 +241,27 @@ function getDirection(direction){
     return ['Controller', 'Host']
 }
 
-function getEvent(frame, eventCode){
+function getHCIEvent(frame, eventCode){
 
-  if(Events[eventCode] === undefined){
+  if(HCI_Events[eventCode] === undefined){
     console.log("Frame: ", frame, " Event: ", eventCode);
   }
-  return Events[eventCode];
+
+  return HCI_Events[eventCode];
 }
 
-function getCommand(frame, commandCode){
+function getHCICommand(frame, commandCode){
 
 
-  if(Commands[commandCode] === undefined){
+  if(HCI_Commands[commandCode] === undefined){
     console.log("Frame: ", frame, " Command: ", commandCode);
   }
-  return Commands[commandCode];
+  return HCI_Commands[commandCode];
+}
+
+function getSMPInfo(frame, smpCode){
+  if(SMP_Commands[smpCode] === undefined){
+    console.log("Frame: ", frame, " Command: ". smpCode);
+  }
+  return SMP_Commands[smpCode];
 }
