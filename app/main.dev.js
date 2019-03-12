@@ -15,6 +15,8 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 
+var path = require('path');
+
 export default class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
@@ -71,7 +73,7 @@ app.on('ready', async () => {
     show: false,
     width: 1200,
     height: 800,
-    icon: `${__dirname}/pictures/bluetooth-custom-icon.png`
+    icon: path.join(__dirname, 'pictures/bluetooth-custom-icon.png')
   });
 
   mainWindow.loadURL(`file://${__dirname}/app.html`);
