@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=true
+Icon[en_US]=bluetooth-custom-icon
+Name[en_US]=Bluetooth Environment
+Exec=gnome-terminal -e "bash -c '~/Shared/AtomProjects/bluetooth-gui/desktop_start.sh'"
+Comment[en_US]=Analyze Blutooth Environment
+Name=Bluetooth Environment
+Comment=Analyze Blutooth Environment
+Icon=bluetooth-custom-icon
+X-Desktop-File-Install-Version=0.23

@@ -70,7 +70,8 @@ app.on('ready', async () => {
   mainWindow = new BrowserWindow({
     show: false,
     width: 1200,
-    height: 800
+    height: 800,
+    icon: `${__dirname}/pictures/bluetooth-custom-icon.png`
   });
 
   mainWindow.loadURL(`file://${__dirname}/app.html`);
