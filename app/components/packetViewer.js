@@ -19,6 +19,13 @@ export default class PacketViewer extends Component<Props> {
           return true;
         }
 
+    if(packet_info['src'].hasOwnProperty('_layer_name')){
+      let layer_name = packet_info['src']['_layer_name'];
+      if(layer_name === 'bluetooth' || layer_name === 'hci_h4'){
+        return true;
+      }
+    }
+
     return false;
   }
 

@@ -7,16 +7,15 @@ db = MongoClient['bluetooth_data']
 class BluetoothDevice:
 
     _id = ''
-    device_name = ""
     bd_addr = ''
-    role = ''
     connections = set()
-    security_manager = {}
     localhost_device_names = ['Source Device Name: ', 'Destination Device Name: ', None]
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
 
         self.collection = db['Devices']
+        self.bd_addr = kwargs.get('bd_addr')
+        self.createDbEntry()
 
     @staticmethod
     def getBluetoothVersion(lmp_version):
@@ -98,10 +97,12 @@ class BluetoothDevice:
 
     def createDbEntry(self):
 
-        self._id = self.collection.insert_one({
-             "bd_addr": self.bd_addr,
-             "role": self.role
-        }).inserted_id
+        entry = self.getDbEntry()
+
+        if entry is None:
+            self._id = self.collection.insert_one({
+                 "bd_addr": self.bd_addr
+            }).inserted_id
 
     def getDbEntry(self):
 

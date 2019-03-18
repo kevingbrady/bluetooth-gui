@@ -1,4 +1,4 @@
-const { getMongoEntry, deleteCollection } = require('../utils/mongoFunctions');
+const { getMongoEntry, getCollectionCount, deleteCollection } = require('../utils/mongoFunctions');
 
 export const FETCH_RAW_DATA = 'FETCH_RAW_DATA';
 export const DELETE_RAW_DATA = 'DELETE_RAW_DATA';
@@ -20,10 +20,12 @@ export const getRawData = () => {
 export const deleteRawData = () => {
 
   return dispatch => {
-    deleteCollection(dbName, 'raw_data')
-    .then(response => dispatch({
-      type: DELETE_RAW_DATA,
-      response: response
-    }))
+    getCollectionCount(dbName, 'raw_data').then(count => {
+      if(count > 0){
+        deleteCollection(dbName, 'raw_data').then(response => dispatch({
+          type: DELETE_RAW_DATA,
+          response: response
+        }));
+      }})
   }
 };

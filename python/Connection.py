@@ -1,14 +1,18 @@
 import pymongo
 
+MongoClient = pymongo.MongoClient()
+db = MongoClient['bluetooth_data']
 
 class BluetoothConnection:
     _id = ''
     handle = ''
-
-    MongoClient = pymongo.MongoClient()
-    db = MongoClient['bluetooth_data']
-    collection = db['Connections']
     standard_name_responses = ['Source Device Name: ', 'Destination Device Name: ']
+
+    def __init__(self, *args, **kwargs):
+
+        self.collection = db['Connections']
+        self.handle = kwargs.get('handle')
+        self.createDbEntry()
 
     def evaluatePairingMethod(self, host, controller):
 
@@ -101,9 +105,12 @@ class BluetoothConnection:
 
     def createDbEntry(self):
 
-        self._id = self.collection.insert_one({
-            "handle": self.handle
-        }).inserted_id
+        entry = self.getDbEntry()
+        if entry is None:
+
+            self._id = self.collection.insert_one({
+                "handle": self.handle
+            }).inserted_id
 
     def getDbEntry(self):
 

@@ -1,4 +1,4 @@
-const { getMongoEntry, deleteCollection } = require('../utils/mongoFunctions');
+const { getMongoEntry, getCollectionCount, deleteCollection } = require('../utils/mongoFunctions');
 
 export const FETCH_DEVICES = 'FETCH_DEVICES';
 export const DELETE_DEVICES = 'DELETE_DEVICES';
@@ -17,10 +17,12 @@ export const getDevices = () => {
 
 export const deleteDevices = () => {
   return dispatch => {
-    deleteCollection(dbName, 'Devices')
-    .then(response => dispatch({
-      type: DELETE_DEVICES,
-      response: response
-      }))
+    getCollectionCount(dbName, 'Devices').then(count => {
+      if(count > 0){
+        deleteCollection(dbName, 'Devices').then(response => dispatch({
+          type: DELETE_DEVICES,
+          response: response
+        }));
+      }})
   }
 };

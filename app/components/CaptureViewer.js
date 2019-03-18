@@ -3,12 +3,16 @@ import React, { Component } from 'react';
 import ReactLoading from 'react-loading';
 import BootstrapTable from 'react-bootstrap-table-next';
 import ToolkitProvider, { Search } from 'react-bootstrap-table2-toolkit';
-import overlayFactory from 'react-bootstrap-table2-overlay';
 import PacketViewer from './packetViewer'
 import styles from './CaptureViewer.css';
 
 var equal = require('fast-deep-equal');
 const { SearchBar } = Search;
+var rowSelection = 1;
+
+// Save Table Scroll Settings
+var scrollHeight = 0;
+var updateHeight = false;
 
 type Props = {
   raw_data: object,
@@ -28,8 +32,8 @@ export default class CaptureViewer extends Component<Props> {
 
   constructor(props){
     super(props)
+    this.state = { rowSelection: rowSelection }
 
-    this.state = { rowSelection: 1 }
   }
 
   shouldComponentUpdate(nextProps, nextState){
@@ -42,6 +46,12 @@ export default class CaptureViewer extends Component<Props> {
       return true;
     }
 
+    if(updateHeight){
+      this.setScrollHeight(scrollHeight)
+      updateHeight= false;
+      return true;
+    }
+
     return false;
   }
 
@@ -50,10 +60,25 @@ export default class CaptureViewer extends Component<Props> {
     return {
         onClick: (e, row, rowIdx) => {
 
-            var frame_number = parseInt(row['frame_number'], 10);
-            this.setState({rowSelection: frame_number});
-          }
+            rowSelection = parseInt(row['frame_number'], 10);
+            this.setState({ rowSelection: rowSelection });
         }
+      }
+  }
+
+  getScrollHeight(){
+    let tbody = document.getElementsByTagName('tbody')[0];
+    if(tbody !== undefined){
+        return tbody.scrollTop;
+    }
+  }
+
+  setScrollHeight(height){
+
+    let tbody = document.getElementsByTagName('tbody')[0];
+    if(tbody !== undefined){
+      tbody.scrollTop = height;
+    }
   }
 
   columns(){
@@ -105,6 +130,7 @@ export default class CaptureViewer extends Component<Props> {
 
     return {
       mode: 'radio',
+      selected: [this.state.rowSelection],
       clickToSelect: true,
       hideSelectColumn: true,
       style: {
@@ -116,9 +142,14 @@ export default class CaptureViewer extends Component<Props> {
 
   }
 
+  componentWillUnmount(){
+      scrollHeight = this.getScrollHeight();
+      updateHeight = true;
+    }
+
   render() {
 
-      return (
+    return (
         <div>
           <div className={styles.componentBody}>
               <ToolkitProvider
@@ -131,11 +162,13 @@ export default class CaptureViewer extends Component<Props> {
                     <div className={styles.captureTableContainer} data-tid="captureTableConatiner">
                     <BootstrapTable
                       {...toolkitprops.baseProps }
+                      remote={{pagination: false, filter: false, search: false}}
                       classes={styles.captureTable}
                       rowStyle={this.getRowStyle}
                       rowEvents={this.getRowOptions()}
                       selectRow={this.selectRowOptions()}
                       noDataIndication={noDataIndication}
+                      bootstrap4={true}
                       />
                       <SearchBar
                         {...toolkitprops.searchProps }

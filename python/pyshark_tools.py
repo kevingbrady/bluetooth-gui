@@ -4,7 +4,7 @@ import json
 def toJSON(pkt):
 
     json_packet = json.dumps(pkt, default=lambda o: o.__dict__)
-    json_packet = json_packet.replace(".", "_")           # Cannot have . as key in JSON
+    json_packet = json_packet.replace(".", "*")           # Cannot have . as key in JSON
     json_packet = json_packet.replace("length", "size")   # Using 'length' as key confuses front end libraries for display so change to 'size'   
     json_packet = json.loads(json_packet)
     return json_packet

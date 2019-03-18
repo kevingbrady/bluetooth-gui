@@ -159,6 +159,13 @@ var SMP_Commands = {
     11: '(SMP) Security Request'
 }
 
+var LESubEvents = {
+  1: 'LE Connection Complete',
+  2: 'LE Advertising Report',
+  3: 'LE Connection Update Complete',
+  4: 'LE ead Remote USed Features Complete'
+}
+
 export default function getPacketOverview(packet){
 
   let packetInfo = {
@@ -191,21 +198,28 @@ function getPacketInfo(frame, layers) {
 
         if(layers[key]['_full_name'] === 'hci_h4'){
 
-          direction = getDirection(layers[key]['_all_fields']['hci_h4_direction'])
+          direction = getDirection(layers[key]['_all_fields']['hci_h4*direction'])
 
         }
         else if(layers[key]['_full_name'] === 'bthci_cmd'){
             packetType = "Command";
-            packetInfo = getHCICommand(frame, layers[key]['_all_fields']['bthci_cmd_opcode'])
+            packetInfo = getHCICommand(frame, layers[key]['_all_fields']['bthci_cmd*opcode'])
 
           }
         else if(layers[key]['_full_name'] === 'bthci_evt'){
             packetType = "Event";
 
-            let eventCode = layers[key]['_all_fields']['bthci_evt_code']
+            let eventCode = layers[key]['_all_fields']['bthci_evt*code']
 
             if(eventCode === '14'){
-              packetInfo = '(' + getHCICommand(frame, layers[key]['_all_fields']['bthci_evt_opcode']) + ') Complete'
+
+              packetInfo = '(' + getHCICommand(frame, layers[key]['_all_fields']['bthci_evt*opcode']) + ') Complete';
+
+            } else if(eventCode == '62'){
+
+              let subEvent = parseInt(layers[key]['_all_fields']['bthci_evt*le_meta_subevent'], 0);          
+              packetInfo = LESubEvents[subEvent];
+
             } else{
               packetInfo = getHCIEvent(frame, eventCode);
             }
@@ -215,7 +229,7 @@ function getPacketInfo(frame, layers) {
 
           }
         else if(layers[key]['_full_name'] === 'btsmp'){
-            let smp_code = parseInt(layers[key]['_all_fields']['btsmp_opcode'], 0);
+            let smp_code = parseInt(layers[key]['_all_fields']['btsmp*opcode'], 0);
             packetInfo = getSMPInfo(frame, smp_code);
         }
         else if(layers[key]['_full_name'] === 'bthci_sco'){

@@ -27,6 +27,7 @@ advertisingAddresses = []
 
 def checkDeviceInfo(packet, role):
 
+    global bd_addr
     packetInfo = {}
 
     if is_layer_here(packet, "bthci_cmd"):
@@ -72,7 +73,20 @@ def checkDeviceInfo(packet, role):
             event_address = get_field(packet, layer, "bd_addr")
 
             if event in (62, 47):
-                advertisingAddresses.append(event_address)
+
+                if event == 62:
+
+                    sub_event = int(get_field(packet, layer, 'le_meta_subevent'), 0)
+
+                    if sub_event != 2:
+                        bd_addr = get_field(packet, layer, "bd_addr")
+                        packetInfo.update({'bd_addr': bd_addr})
+
+                    else:
+                        advertisingAddresses.append(event_address)
+
+                else:
+                    advertisingAddresses.append(event_address)
 
             else:
 
@@ -199,6 +213,7 @@ def checkDeviceInfo(packet, role):
 
 def checkConnectionInfo(packet, role):
 
+    global handle
     packetInfo = {}
 
     if is_layer_here(packet, "bthci_cmd"):
@@ -307,7 +322,8 @@ def captureBluetooth(packet):
     deviceInfo.update(checkDeviceInfo(packet,  role))
     connectionInfo.update(checkConnectionInfo(packet, role))
 
-    #print(deviceInfo)
+   # print(app["devices"])
+   # print("\n")
     #print(connectionInfo)
 
     if 'bd_addr' in deviceInfo.keys():
@@ -319,12 +335,7 @@ def captureBluetooth(packet):
 
                 if bd_addr not in app["devices"][role].keys():
 
-                    app["devices"][role].update({bd_addr: BluetoothDevice()})
-                    app["devices"][role][bd_addr].bd_addr = bd_addr
-                    app["devices"][role][bd_addr].getDbEntry()
-
-                if app["devices"][role][bd_addr].inDatabase() is False:
-                    app["devices"][role][bd_addr].createDbEntry()
+                    app["devices"][role].update({bd_addr: BluetoothDevice(bd_addr=bd_addr)})
 
                 del deviceInfo[entry]
 
@@ -332,16 +343,14 @@ def captureBluetooth(packet):
 
                 if bd_addr in app["devices"][role]:
 
-                    print(role)
                     device = app["devices"][role][bd_addr].getDbEntry()
                     app["devices"][role][bd_addr].updateField('role', role)
 
                     if entry == 'handle':
                         app["devices"][role][bd_addr].updateConnections(value)
-                        del deviceInfo[entry]
-                        continue
+                    else:
+                        app["devices"][role][bd_addr].updateField(entry, value)
 
-                    app["devices"][role][bd_addr].updateField(entry, value)
                     del deviceInfo[entry]
 
     if 'handle' in connectionInfo.keys():
@@ -353,19 +362,16 @@ def captureBluetooth(packet):
                 handle = value
 
                 if handle not in app["connections"]:
-                    app["connections"].update({handle: BluetoothConnection()})
-                    app["connections"][handle].handle = handle
-                    app["connections"][handle].getDbEntry()
-
-                    if app["connections"][handle].inDatabase() is False:
-                        app["connections"][handle].createDbEntry()
+                    app["connections"].update({handle: BluetoothConnection(handle=handle)})
 
                 del connectionInfo[entry]
 
             else:
 
-                app["connections"][handle].updateField(entry, value)
-                del connectionInfo[entry]
+                if handle in app["connections"]:
+
+                    app["connections"][handle].updateField(entry, value)
+                    del connectionInfo[entry]
 
     # Evaluate Pairing Method if data is available
 

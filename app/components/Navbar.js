@@ -7,9 +7,10 @@ import { ButtonToolbar,
 import routes from '../constants/routes';
 import styles from './Navbar.css';
 import buildFileSelector from '../middleware/capture_utils';
-import sleep from '../middleware/capture_utils';
+import { getCollectionCount } from '../utils/mongoFunctions';
 
-import { getCollectionCount } from '../utils/mongoFunctions'
+var equal = require('fast-deep-equal');
+var localhost = '00:00:00:00:00:00';
 
 type Props = {
     getDevices: () => void,
@@ -30,71 +31,54 @@ export default class NavigationBar extends Component<Props> {
       super(props);
 
       this.clearCollections = this.clearCollections.bind(this);
-      this.liveCaptureClick = this.liveCaptureClick.bind(this);
-      this.fileCaptureClick = this.fileCaptureClick.bind(this);
       this.handleFileSelection = this.handleFileSelection.bind(this);
 
       this.state = { isRunningLive: false, isRunningFile: false };
       this.fileSelector = buildFileSelector();
-      this.fileSelector.onchange = (event) => {this.handleFileSelection(event)}
+      this.fileSelector.onchange = (event) => {this.handleFileSelection(event)};
   }
 
   shouldComponentUpdate(nextProps, nextState){
-    if(nextState.isRunningLive !== this.state.isRunningLive){
-      return true;
-    }
-    if(nextState.isRunningFile !== this.state.isRunningFile){
-      return true;
-    }
-    return false;
+    return(!equal(nextState, this.state))
   }
 
   componentDidMount(){
-    this.clearCollections();
+    this.clearCollections().then(response => {
+      console.log(response);
+    });
   }
 
-  clearCollections(){
+  componentDidUpdate(){
 
-    const {
-      deleteDevices,
-      deleteConnections,
-      deleteRawData
-    } = this.props;
+    this.props.getDevices();
+    this.props.getConnections();
+    this.props.getRawData();
 
-    getCollectionCount('bluetooth_data', 'Devices').then(count => {
-
-      if(count > 0){
-        deleteDevices();
-      }
-    })
-
-    getCollectionCount('bluetooth_data', 'Connections').then(count => {
-
-      if(count > 0){
-        deleteConnections();
-      }
-    })
-
-    getCollectionCount('bluetooth_data', 'raw_data').then(count => {
-
-      if(count > 0){
-        deleteRawData();
-      }
-    })
-
+    if(this.state.isRunningLive){
+      let tbody = document.getElementsByTagName('tbody')[0];
+      tbody.scrollTop = tbody.scrollHeight;
+    }
   }
+
+  clearCollections = async () => (await(() => (
+    new Promise((resolve, reject) => {
+          this.props.deleteRawData();
+          this.props.deleteDevices();
+          this.props.deleteConnections();
+          resolve('complete');
+        }
+  )))());
 
   handleDataFetch(captureRunning){
 
-      let interval = setInterval(() => {
+    let interval = setInterval(() => {
 
-        this.props.getDevices();
-        this.props.getConnections();
-        this.props.getRawData();
-        if(!captureRunning){
-          clearInterval(interval);
-        }
-      }, 2000);
+      this.forceUpdate();
+
+      if(!captureRunning){
+        clearInterval(interval);
+      }
+    }, 1000);
   }
 
   liveCaptureClick(){
@@ -112,31 +96,31 @@ export default class NavigationBar extends Component<Props> {
         data: JSON.stringify({capture_method: 'stop',
                               capture_type: 'live'}),
         success: (response) => {
+          // Stop Live Capture Here
+          this.setState((state) => ({ isRunningLive: false }));
           alert(response['result']);
         },
         dataType: 'json',
         contentType: 'application/json;charset=UTF-8'
       })
 
-      // Stop Live Capture Here
-      this.setState({ isRunningLive: false });
-
     } else {
 
-      this.clearCollections();
+      this.clearCollections().then(response => {
 
-      //Start Live Capture Here
-      $.ajax({
-        type: "POST",
-        url: "http://localhost:5000/capture",
-        data: JSON.stringify({capture_method: 'start',
+        this.setState((state) => ({ isRunningLive: true }));
+        this.handleDataFetch(this.state.isRunningLive);
+
+        //Start Live Capture Here
+        $.ajax({
+          type: "POST",
+          url: "http://localhost:5000/capture",
+          data: JSON.stringify({capture_method: 'start',
                               capture_type: 'live'}),
-        dataType: 'json',
-        contentType: 'application/json;charset=UTF-8'
-      })
-
-      this.setState({ isRunningLive: true });
-      this.handleDataFetch(this.state.isRunningLive)
+          dataType: 'json',
+          contentType: 'application/json;charset=UTF-8'
+        })
+      });
     }
   }
 
@@ -159,48 +143,47 @@ export default class NavigationBar extends Component<Props> {
                                       capture_type: 'file'}),
                 success: (response) => {
                   alert(response['result']);
+                  filePath = '';
+                  this.setState({ isRunningFile: false });
                 },
                 dataType: 'json',
                 contentType: 'application/json;charset=UTF-8'
-              })
-
-              filePath = '';
-              this.setState({ isRunningFile: false });
+              });
 
             } else {
 
-               this.clearCollections();
               // Start File Selector Window
                 this.fileSelector.click();
               }
             }
-
   }
 
   handleFileSelection = (event) => {
 
-    filePath = event.target.files[0].path;
+    if(event.target.files.length > 0){
 
-    //Start File Capture Here
-    $.ajax({
-      type: "POST",
-      url: "http://localhost:5000/capture",
-      data: JSON.stringify({capture_method: 'start',
-                            capture_type: 'file',
-                            capture_file: filePath }),
-      success: (response) => {
+      filePath = event.target.files[0].path;
+      this.clearCollections().then(response =>  {
+        
+        this.setState({ isRunningFile: true });
+        this.handleDataFetch(this.state.isRunningFile);
 
-        this.handleDataFetch()
-        this.setState({ isRunningFile: false })
-      },
-      dataType: 'json',
-      contentType: 'application/json;charset=UTF-8'
-    })
+        //Start File Capture Here
+        $.ajax({
+          type: "POST",
+          url: "http://localhost:5000/capture",
+          data: JSON.stringify({capture_method: 'start',
+                                capture_type: 'file',
+                                capture_file: filePath }),
+          success: (response) => {
 
-    this.setState({ isRunningFile: true });
-    this.handleDataFetch(this.state.isRunningFile);
-
-
+            this.setState({ isRunningFile: false })
+          },
+          dataType: 'json',
+          contentType: 'application/json;charset=UTF-8'
+        })
+      });
+    }
   }
 
   render(){
@@ -220,7 +203,7 @@ export default class NavigationBar extends Component<Props> {
             <Button
               className={isRunningLive ? styles.CaptureRunningButton : styles.CaptureStoppedButton}
               variant="primary"
-              onClick={this.liveCaptureClick}
+              onClick={() => this.liveCaptureClick()}
               active
               >
               {isRunningLive ?  'Running ...': 'Live Capture'}
@@ -228,7 +211,7 @@ export default class NavigationBar extends Component<Props> {
             <Button
               className={isRunningFile ? styles.CaptureRunningButton : styles.CaptureStoppedButton}
               variant="primary"
-              onClick={this.fileCaptureClick}
+              onClick={() => this.fileCaptureClick()}
               active
               >
               {isRunningFile ? 'Running ...':  'File Capture' }

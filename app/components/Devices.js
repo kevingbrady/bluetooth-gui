@@ -9,6 +9,8 @@ import { getAuthentication,
          getOutofBand } from '../middleware/device_utils';
 
 var equal = require('fast-deep-equal');
+var localhost = '00:00:00:00:00:00';
+var saveStateDevices = {}
 
 type Props = {
   devices: object
@@ -20,11 +22,35 @@ export default class Devices extends Component<Props> {
 
   constructor(props){
     super(props)
+
+    this.state = saveStateDevices;
+
   }
 
   shouldComponentUpdate(nextProps){
       return(!equal(nextProps.devices, this.props.devices));
   }
+
+  componentDidUpdate(prevProps, prevState){
+
+    if(Object.keys(prevState).length !== prevProps.devices.length){
+      for(let key in prevProps.devices){
+
+        let bd_addr = prevProps.devices[key].bd_addr;
+        if(prevState[bd_addr] === undefined){
+
+          this.setState((state) => ({
+             [bd_addr]: false
+             }));
+           }
+        }
+    }
+  }
+
+  componentWillUnmount(){
+    saveStateDevices = this.state;
+  }
+
 
   shouldCollapse(device_info){
 
@@ -36,45 +62,72 @@ export default class Devices extends Component<Props> {
     return false;
   }
 
+  openCollapsible(device_address){
+    this.setState((state) => ({
+       [device_address]: true
+      }));
+  }
+
+  closeCollapsible(device_address){
+    this.setState((state) => ({
+       [device_address]: false
+      }));
+  }
+
+  showDeviceCodes(device){
+
+    let deviceDisplay = Object.assign({}, device);
+
+    if(device['bd_addr'] === localhost){
+      deviceDisplay['device_name'] = 'localhost';
+    }
+
+    if(device['authentication'] !== undefined){
+      deviceDisplay['authentication'] = getAuthentication(device['authentication']);
+    }
+
+    if(device['io_capability'] !== undefined){
+      deviceDisplay['io_capability'] = getIOCapability(device['io_capability'])
+    }
+
+    if(device['oob_flag'] !== undefined){
+      deviceDisplay['oob_flag'] = getOutofBand(device['oob_flag']);
+    }
+
+    return deviceDisplay;
+
+  }
   render() {
 
     const { devices } = this.props;
-    let deviceDisplay = Object.keys(devices).map((key) => {
+    let devicesDisplay = Object.keys(devices).map((key) => {
 
-      if(devices[key]['bd_addr'] === '00:00:00:00:00:00'){
-        devices[key]['device_name'] = 'localhost';
-      }
+        let bd_addr = devices[key]['bd_addr'];
+        let device_name = bd_addr === localhost ? 'localhost': devices[key].device_name;
 
-      if(devices[key]['device_name'] !== undefined){
+        if(device_name !== undefined){
 
-        if(devices[key]['authentication'] !== undefined){
-          devices[key]['authentication'] = getAuthentication(devices[key]['authentication']);
-        }
-
-        if(devices[key]['io_capability'] !== undefined){
-          devices[key]['io_capability'] = getIOCapability(devices[key]['io_capability'])
-        }
-
-        if(devices[key]['oob_flag'] !== undefined){
-          devices[key]['oob_flag'] = getOutofBand(devices[key]['oob_flag']);
-        }
-
-        return(<Collapsible
+          return(<Collapsible
                 className={styles.Collapsible}
                 triggerOpenedClassName={styles.openedTrigger}
                 contentOuterClassName={styles.outerContent}
                 key ={devices[key]._id}
-                trigger={devices[key].device_name}>
-                  <ReactJson src={devices[key]}
+                trigger={device_name}
+                open={this.state[bd_addr]}
+                onOpening={() => this.openCollapsible(bd_addr)}
+                onClosing={() => this.closeCollapsible(bd_addr)}
+                lazyRender={true}
+                >
+                  <ReactJson src={this.showDeviceCodes(devices[key])}
                     theme="summerfruit:inverted"
                     iconStyle="triangle"
                     displayDataTypes={false}
                     indentWidth={6}
-                    name={devices[key].device_name}
+                    name={device_name}
                     shouldCollapse={this.shouldCollapse}/>
               </Collapsible>
               )
-        }
+      }
     })
 
     if(devices.length > 0){
@@ -84,7 +137,7 @@ export default class Devices extends Component<Props> {
           <div className={styles.componentBody}>
             <div className={styles.dataTable} data-tid="dataTable">
               <h2> Devices </h2>
-              {deviceDisplay}
+              {devicesDisplay}
             </div>
           </div>
         </div>
