@@ -7,7 +7,6 @@ import { ButtonToolbar,
 import routes from '../constants/routes';
 import styles from './Navbar.css';
 import buildFileSelector from '../middleware/capture_utils';
-import { getCollectionCount } from '../utils/mongoFunctions';
 
 var equal = require('fast-deep-equal');
 var localhost = '00:00:00:00:00:00';
@@ -15,10 +14,7 @@ var localhost = '00:00:00:00:00:00';
 type Props = {
     getDevices: () => void,
     getConnections: () => void,
-    getRawData: () => void,
-    deleteDevices: () => void,
-    deleteConnections: ()=> void,
-    deleteRawData: ()=> void
+    getRawData: () => void
 }
 
 var filePath = '';
@@ -30,22 +26,15 @@ export default class NavigationBar extends Component<Props> {
 
       super(props);
 
-      this.clearCollections = this.clearCollections.bind(this);
       this.handleFileSelection = this.handleFileSelection.bind(this);
-
-      this.state = { isRunningLive: false, isRunningFile: false };
       this.fileSelector = buildFileSelector();
       this.fileSelector.onchange = (event) => {this.handleFileSelection(event)};
+      
+      this.state = { isRunningLive: false, isRunningFile: false };
   }
 
   shouldComponentUpdate(nextProps, nextState){
     return(!equal(nextState, this.state))
-  }
-
-  componentDidMount(){
-    this.clearCollections().then(response => {
-      console.log(response);
-    });
   }
 
   componentDidUpdate(){
@@ -59,15 +48,6 @@ export default class NavigationBar extends Component<Props> {
       tbody.scrollTop = tbody.scrollHeight;
     }
   }
-
-  clearCollections = async () => (await(() => (
-    new Promise((resolve, reject) => {
-          this.props.deleteRawData();
-          this.props.deleteDevices();
-          this.props.deleteConnections();
-          resolve('complete');
-        }
-  )))());
 
   handleDataFetch(captureRunning){
 
@@ -106,7 +86,6 @@ export default class NavigationBar extends Component<Props> {
 
     } else {
 
-      this.clearCollections().then(response => {
 
         this.setState((state) => ({ isRunningLive: true }));
         this.handleDataFetch(this.state.isRunningLive);
@@ -119,8 +98,7 @@ export default class NavigationBar extends Component<Props> {
                               capture_type: 'live'}),
           dataType: 'json',
           contentType: 'application/json;charset=UTF-8'
-        })
-      });
+        });
     }
   }
 
@@ -163,25 +141,22 @@ export default class NavigationBar extends Component<Props> {
     if(event.target.files.length > 0){
 
       filePath = event.target.files[0].path;
-      this.clearCollections().then(response =>  {
-        
-        this.setState({ isRunningFile: true });
-        this.handleDataFetch(this.state.isRunningFile);
+      this.setState({ isRunningFile: true });
+      this.handleDataFetch(this.state.isRunningFile);
 
-        //Start File Capture Here
-        $.ajax({
-          type: "POST",
-          url: "http://localhost:5000/capture",
-          data: JSON.stringify({capture_method: 'start',
-                                capture_type: 'file',
-                                capture_file: filePath }),
-          success: (response) => {
+      //Start File Capture Here
+      $.ajax({
+        type: "POST",
+        url: "http://localhost:5000/capture",
+        data: JSON.stringify({capture_method: 'start',
+                              capture_type: 'file',
+                              capture_file: filePath }),
+        success: (response) => {
 
-            this.setState({ isRunningFile: false })
-          },
-          dataType: 'json',
-          contentType: 'application/json;charset=UTF-8'
-        })
+          this.setState({ isRunningFile: false })
+        },
+        dataType: 'json',
+        contentType: 'application/json;charset=UTF-8'
       });
     }
   }

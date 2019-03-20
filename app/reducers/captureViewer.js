@@ -1,10 +1,7 @@
 // @flow
-import { FETCH_RAW_DATA,
-         DELETE_RAW_DATA } from '../actions/capture';
+import { FETCH_RAW_DATA } from '../actions/capture';
 import type { Action } from './types';
-import getPacketOverview from '../middleware/packet_utils'
-
-var equal = require('fast-deep-equal');
+import getPacketOverview from '../middleware/packet_utils';
 
 const initialState = {
 
@@ -33,14 +30,6 @@ export default function captureViewerReducer(state=initialState, action: Action)
       return {...state, raw_data: rawData, tableData: tableData }
       break;
     }
-
-  case DELETE_RAW_DATA: {
-    if(action.response !== 'Dropped raw_data'){
-        console.log(action.response);
-    }
-    return {...state, raw_data: [], tableData: [] }
-    break;
-  }
 }
 
 return state

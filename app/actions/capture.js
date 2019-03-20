@@ -1,8 +1,6 @@
-const { getMongoEntry, getCollectionCount, deleteCollection } = require('../utils/mongoFunctions');
+const { getMongoEntry } = require('../utils/mongoFunctions');
 
 export const FETCH_RAW_DATA = 'FETCH_RAW_DATA';
-export const DELETE_RAW_DATA = 'DELETE_RAW_DATA';
-export const ROW_SELECTION = 'ROW_SELECTION';
 
 var dbName = 'bluetooth_data';
 
@@ -14,18 +12,5 @@ export const getRawData = () => {
         type: FETCH_RAW_DATA,
         response: data
       }))
-  }
-};
-
-export const deleteRawData = () => {
-
-  return dispatch => {
-    getCollectionCount(dbName, 'raw_data').then(count => {
-      if(count > 0){
-        deleteCollection(dbName, 'raw_data').then(response => dispatch({
-          type: DELETE_RAW_DATA,
-          response: response
-        }));
-      }})
   }
 };

@@ -1,26 +1,12 @@
-import pymongo
 from pyshark_tools import *
 from Connection import BluetoothConnection
 from Device import BluetoothDevice
+
 # (False, True)[if condition is true]
-
-MongoClient = pymongo.MongoClient()
-db = MongoClient['bluetooth_data']
-
-# Connection Handle Placeholder
-handle = ""
-bd_addr = ""
-
-deviceInfo = {}
-connectionInfo = {}
-
-advertisingAddresses = []
-
-app_data = {}
 
 def checkDeviceInfo(packet, role):
 
-    global bd_addr
+    global bd_addr, advertisingAddresses
     packetInfo = {}
 
     if is_layer_here(packet, "bthci_cmd"):
@@ -305,7 +291,7 @@ def checkConnectionInfo(packet, role):
 # ------- PACKET CALLBACK FUNCTION ------
 def captureBluetooth(packet):
 
-    global deviceInfo, connectionInfo, bd_addr, handle
+    global db, app_data, deviceInfo, connectionInfo, bd_addr, handle
 
     db['raw_data'].insert_one(toJSON(packet))
 

@@ -12,11 +12,15 @@ db = MongoClient['bluetooth_data']
 
 capture = ""
 
+def clear_data():
+    db['raw_data'].delete_many({})
+    db['Devices'].delete_many({})
+    db['Connections'].delete_many({})
+
 @app.route("/shutdown", methods=['POST'])
 def shutdown_server():
     main_thread_id = threading.main_thread().ident
     os.kill(main_thread_id, 15)
-
 
 @app.route("/capture", methods=['POST'])
 def capture_callback():
@@ -48,6 +52,10 @@ def capture_callback():
         capture.use_json = True
         capture.keep_packets = False
 
+        # Reset Capture variables before running new capture
+
+        clear_data()
+
         packetCallback.app_data = {
             "devices": {
                 "host": {},
@@ -56,7 +64,15 @@ def capture_callback():
             "connections": {}
         }
 
+        packetCallback.db = db
+        packetCallback.advertisingAddresses = []
+        packetCallback.deviceInfo = {}
+        packetCallback.connectionInfo = {}
+        packetCallback.handle = ""
+        packetCallback.bd_addr = ""
+
         capture.apply_on_packets(packetCallback.captureBluetooth)
+
         return jsonify({'result': "Finished Capture"})
 
     elif arguments["capture_method"] == 'stop':
@@ -71,4 +87,5 @@ def capture_callback():
 
 if __name__ == '__main__':
 
+    clear_data()
     app.run()

@@ -1,12 +1,8 @@
 // @flow
-import { FETCH_DEVICES,
-         DELETE_DEVICES } from '../actions/devices';
-
+import { FETCH_DEVICES } from '../actions/devices';
 import type { Action } from './types';
 
-const { getMongoEntry, deleteCollection } = require('../utils/mongoFunctions')
-
-var equal = require('fast-deep-equal');
+const { getMongoEntry } = require('../utils/mongoFunctions')
 
 const initialState = {
     devices: []
@@ -19,13 +15,6 @@ export default function deviceReducer(state=initialState, action: Action) {
     case FETCH_DEVICES: {
         return {...state, devices: action.response }
         break;
-    }
-    case DELETE_DEVICES: {
-      if(action.response !== 'Dropped Devices'){
-          console.log(action.response);
-      }
-      return {...state, devices: []}
-      break;
     }
   }
 
