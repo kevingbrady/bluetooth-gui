@@ -2,18 +2,10 @@ import pymongo
 from pyshark_tools import *
 from Connection import BluetoothConnection
 from Device import BluetoothDevice
-
 # (False, True)[if condition is true]
 
 MongoClient = pymongo.MongoClient()
 db = MongoClient['bluetooth_data']
-
-app = {"devices": {
-            "host": {},
-            "controller": {}
-        },
-       "connections": {}
-       }
 
 # Connection Handle Placeholder
 handle = ""
@@ -24,6 +16,7 @@ connectionInfo = {}
 
 advertisingAddresses = []
 
+app_data = {}
 
 def checkDeviceInfo(packet, role):
 
@@ -308,6 +301,7 @@ def checkConnectionInfo(packet, role):
 
     return packetInfo
 
+
 # ------- PACKET CALLBACK FUNCTION ------
 def captureBluetooth(packet):
 
@@ -322,9 +316,6 @@ def captureBluetooth(packet):
     deviceInfo.update(checkDeviceInfo(packet,  role))
     connectionInfo.update(checkConnectionInfo(packet, role))
 
-   # print(app["devices"])
-   # print("\n")
-    #print(connectionInfo)
 
     if 'bd_addr' in deviceInfo.keys():
 
@@ -333,23 +324,23 @@ def captureBluetooth(packet):
             if entry == 'bd_addr':
                 bd_addr = value
 
-                if bd_addr not in app["devices"][role].keys():
+                if bd_addr not in app_data["devices"][role].keys():
 
-                    app["devices"][role].update({bd_addr: BluetoothDevice(bd_addr=bd_addr)})
+                    app_data["devices"][role].update({bd_addr: BluetoothDevice(bd_addr=bd_addr)})
 
                 del deviceInfo[entry]
 
             else:
 
-                if bd_addr in app["devices"][role]:
+                if bd_addr in app_data["devices"][role]:
 
-                    device = app["devices"][role][bd_addr].getDbEntry()
-                    app["devices"][role][bd_addr].updateField('role', role)
+                    device = app_data["devices"][role][bd_addr].getDbEntry()
+                    app_data["devices"][role][bd_addr].updateField('role', role)
 
                     if entry == 'handle':
-                        app["devices"][role][bd_addr].updateConnections(value)
+                        app_data["devices"][role][bd_addr].updateConnections(value)
                     else:
-                        app["devices"][role][bd_addr].updateField(entry, value)
+                        app_data["devices"][role][bd_addr].updateField(entry, value)
 
                     del deviceInfo[entry]
 
@@ -361,21 +352,21 @@ def captureBluetooth(packet):
 
                 handle = value
 
-                if handle not in app["connections"]:
-                    app["connections"].update({handle: BluetoothConnection(handle=handle)})
+                if handle not in app_data["connections"]:
+                    app_data["connections"].update({handle: BluetoothConnection(handle=handle)})
 
                 del connectionInfo[entry]
 
             else:
 
-                if handle in app["connections"]:
+                if handle in app_data["connections"]:
 
-                    app["connections"][handle].updateField(entry, value)
+                    app_data["connections"][handle].updateField(entry, value)
                     del connectionInfo[entry]
 
     # Evaluate Pairing Method if data is available
 
-    for handle, conn in app["connections"].items():
+    for handle, conn in app_data["connections"].items():
 
         connection = conn.getDbEntry()
 
@@ -386,8 +377,8 @@ def captureBluetooth(packet):
 
             if host_addr is not None and controller_addr is not None:
 
-                host = app["devices"]['host'].get(connection['host_addr'])
-                controller = app["devices"]['controller'].get(connection['controller_addr'])
+                host = app_data["devices"]['host'].get(connection['host_addr'])
+                controller = app_data["devices"]['controller'].get(connection['controller_addr'])
 
                 if host is not None and controller is not None:
 

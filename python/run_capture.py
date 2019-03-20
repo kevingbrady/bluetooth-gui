@@ -1,20 +1,16 @@
 from pyshark import *
 import sys
 from flask import Flask, jsonify, request
-from packetCallback import captureBluetooth
+import packetCallback
 import pymongo
 import os
 import threading
 
 app = Flask(__name__)
-
-app_data = {}
 MongoClient = pymongo.MongoClient()
 db = MongoClient['bluetooth_data']
 
 capture = ""
-timeout = None
-
 
 @app.route("/shutdown", methods=['POST'])
 def shutdown_server():
@@ -52,7 +48,15 @@ def capture_callback():
         capture.use_json = True
         capture.keep_packets = False
 
-        capture.apply_on_packets(captureBluetooth)
+        packetCallback.app_data = {
+            "devices": {
+                "host": {},
+                "controller": {}
+            },
+            "connections": {}
+        }
+
+        capture.apply_on_packets(packetCallback.captureBluetooth)
         return jsonify({'result': "Finished Capture"})
 
     elif arguments["capture_method"] == 'stop':

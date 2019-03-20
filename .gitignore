@@ -52,3 +52,5 @@ npm-debug.log.*
 
 python/pscr_devices
 python/__pycache__
+
+desktop_start.sh
