@@ -3,7 +3,7 @@
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import CaptureViewer from '../components/CaptureViewer/CaptureViewer';
-import * as captureActions from '../actions/capture';
+import * as captureActions from '../actions/captureViewer';
 
 function mapStateToProps(state) {
   return {

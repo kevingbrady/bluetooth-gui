@@ -1,5 +1,5 @@
 // @flow
-import { FETCH_RAW_DATA } from '../actions/capture';
+import { FETCH_RAW_DATA } from '../actions/captureViewer';
 import type { Action } from './types';
 import getPacketOverview from '../middleware/packet_utils';
 
@@ -21,11 +21,9 @@ export default function captureViewerReducer(state=initialState, action: Action)
         if(action.response !== null){
 
           rawData = action.response;
-
-          for(let i = 0; i < rawData.length; i++){
-
-              tableData[i] = getPacketOverview(rawData[i]);
-          }
+          tableData = rawData.map((packet) => {
+            return getPacketOverview(packet);
+            });
       }
       return {...state, raw_data: rawData, tableData: tableData }
       break;
