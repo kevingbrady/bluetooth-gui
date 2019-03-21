@@ -7,14 +7,20 @@ db = MongoClient['bluetooth_data']
 class BluetoothDevice:
 
     _id = ''
+    role = ''
     bd_addr = ''
+    address_randomized = False
     connections = set()
+    security_keys = {}
     localhost_device_names = ['Source Device Name: ', 'Destination Device Name: ', None]
+    role_switch = 3
 
     def __init__(self, *args, **kwargs):
 
         self.collection = db['Devices']
+        self.role = kwargs.get('role')
         self.bd_addr = kwargs.get('bd_addr')
+        self.address_randomized = kwargs.get('address_randomized')
         self.createDbEntry()
 
     @staticmethod
@@ -93,7 +99,18 @@ class BluetoothDevice:
                     'connections': list(self.connections)
                 }
                 }
-            )
+        )
+
+    def updateSecurityKeys(self, key_item):
+
+        self.security_keys.update(key_item)
+        self.collection.update(
+          {"_id": self._id},
+          {"$set": {
+            'security_keys': self.security_keys
+          }}
+        )
+
 
     def createDbEntry(self):
 
@@ -101,7 +118,9 @@ class BluetoothDevice:
 
         if entry is None:
             self._id = self.collection.insert_one({
-                 "bd_addr": self.bd_addr
+                 "role": self.role,
+                 "bd_addr": self.bd_addr,
+                 "address_randomized": self.address_randomized
             }).inserted_id
 
     def getDbEntry(self):

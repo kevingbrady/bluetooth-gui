@@ -81,13 +81,53 @@ def bluetooth_message_direction(packet):
     return direction.get(packet.hci_h4.direction)
 
 
+def get_device_class_info(packet, layer):
+
+    device_class = {
+      'major': None,
+      'minor': None,
+      'services': {
+        'information': None,
+        'telephony': None,
+        'audio': None,
+        'object_transfer': None,
+        'capturing': None,
+        'rendering': None,
+        'networking': None,
+        'positioning': None,
+        'limited_discoverable_mode': None,
+        'reserved': None
+      }
+    }
+
+    device_class_tree = packet[layer]._all_fields['btcommon.cod.class_of_device_tree']
+
+    device_class['major'] = device_class_tree['btcommon.cod.major_device_class']
+    device_class['minor'] = device_class_tree['btcommon.cod.minor_device_class']
+
+    # Record available services
+
+    device_class['services']['information'] = device_class_tree['btcommon.cod.major_service_classes.information']
+    device_class['services']['telephony'] = device_class_tree['btcommon.cod.major_service_classes.telephony']
+    device_class['services']['audio'] = device_class_tree['btcommon.cod.major_service_classes.audio']
+    device_class['services']['object_transfer'] = device_class_tree['btcommon.cod.major_service_classes.object_transfer']
+    device_class['services']['capturing'] = device_class_tree['btcommon.cod.major_service_classes.capturing']
+    device_class['services']['rendering'] = device_class_tree['btcommon.cod.major_service_classes.rendering']
+    device_class['services']['networking'] = device_class_tree['btcommon.cod.major_service_classes.networking']
+    device_class['services']['positioning'] = device_class_tree['btcommon.cod.major_service_classes.positioning']
+    device_class['services']['limited_discoverable_mode'] = device_class_tree['btcommon.cod.major_service_classes.limited_discoverable_mode']
+    device_class['services']['reserved'] = device_class_tree['btcommon.cod.major_service_classes.reserved']
+
+    return device_class
+
+
 def get_field(pkt, layer, field):
 
     if is_field_here(pkt, layer, field):
 
         full_field_name = str(layer) + "." + str(field)
 
-        #return str(pkt[layer]._all_fields[field_name])
-        return packet_util.get_value_from_packet_for_layer_field(pkt, layer, full_field_name)
+        return pkt[layer]._all_fields[full_field_name]
+        #return packet_util.get_value_from_packet_for_layer_field(pkt, layer, full_field_name)
 
     return None

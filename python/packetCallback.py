@@ -1,6 +1,7 @@
 from pyshark_tools import *
 from Connection import BluetoothConnection
 from Device import BluetoothDevice
+from DeviceClassCodes import *
 
 # (False, True)[if condition is true]
 
@@ -12,10 +13,10 @@ def checkDeviceInfo(packet, role):
     if is_layer_here(packet, "bthci_cmd"):
 
         layer = "bthci_cmd"
+        command = int(get_field(packet, layer, "opcode"))
 
         if is_field_here(packet, layer, "bd_addr"):
 
-            command = int(get_field(packet, layer, "opcode"))
             if command == 8197:
                 pass
 
@@ -29,6 +30,15 @@ def checkDeviceInfo(packet, role):
 
                 else:
                     packetInfo.update({"address_randomized": False})
+
+        if is_field_here(packet, layer, 'class_of_device_tree'):
+            device_class_info = get_device_class_info(packet, layer)
+            device_class_info['major'] = MAJOR_DEVICE_CLASSES[device_class_info['major']]
+            device_class_info['minor'] = MINOR_DEVICE_CLASSES[device_class_info['major']][device_class_info['minor']]
+
+            device_class = device_class_info['major'] + ': ' + device_class_info['minor']
+            packetInfo.update({'device_class': device_class})
+            packetInfo.update({'services': device_class_info['services']})
 
         if is_field_here(packet, layer, "auth_requirements"):
             authentication = get_field(packet, layer, 'auth_requirements')
@@ -45,10 +55,10 @@ def checkDeviceInfo(packet, role):
     if is_layer_here(packet, "bthci_evt"):
 
         layer = "bthci_evt"
+        event = int(get_field(packet, layer, 'code'))
 
         if is_field_here(packet, layer, "bd_addr"):
 
-            event = int(get_field(packet, layer, 'code'))
             event_address = get_field(packet, layer, "bd_addr")
 
             if event in (62, 47):
@@ -60,6 +70,12 @@ def checkDeviceInfo(packet, role):
                     if sub_event != 2:
                         bd_addr = get_field(packet, layer, "bd_addr")
                         packetInfo.update({'bd_addr': bd_addr})
+
+                        if bd_addr not in advertisingAddresses:
+                          packetInfo.update({"address_randomized": True})
+
+                        else:
+                          packetInfo.update({"address_randomized": False})
 
                     else:
                         advertisingAddresses.append(event_address)
@@ -135,6 +151,7 @@ def checkDeviceInfo(packet, role):
     if is_layer_here(packet, "btsmp"):
 
         layer = "btsmp"
+        security_keys = {}
 
         #print(vars(packet.btsmp))
         if is_field_here(packet, layer, 'io_capability'):
@@ -161,7 +178,7 @@ def checkDeviceInfo(packet, role):
 
         if is_field_here(packet, layer, "cfm_value"):
             cfm_value = get_field(packet, layer, "cfm_value")
-            packetInfo.update({"cfm_value": cfm_value})
+            security_keys.update({"cfm_value": cfm_value})
 
         if is_field_here(packet, layer, "random_value"):
             random_value = get_field(packet, layer, "random_value")
@@ -169,23 +186,28 @@ def checkDeviceInfo(packet, role):
             if is_field_here(packet, layer, "ediv"):
 
                 ediv = get_field(packet, layer, "ediv")
-                packetInfo.update({"master_identification": {"ediv": ediv, "random_value": random_value}})
+                security_keys.update({"master_identification": {"ediv": ediv, "random_value": random_value}})
 
             else:
 
-                packetInfo.update({"random_value": random_value})
+                security_keys.update({"random_value": random_value})
 
         if is_field_here(packet, layer, "long_term_key"):
             long_term_key = get_field(packet, layer, "long_term_key")
-            packetInfo.update({"long_term_key": long_term_key})
+            security_keys.update({"long_term_key": long_term_key})
 
         if is_field_here(packet, layer, "id_resolving_key"):
             id_resolving_key = get_field(packet, layer, "id_resolving_key")
-            packetInfo.update({"id_resolving_key": id_resolving_key})
+            security_keys.update({"id_resolving_key": id_resolving_key})
 
         if is_field_here(packet, layer, "signature_key"):
             signature_key = get_field(packet, layer, "signature_key")
-            packetInfo.update({"signature_key": signature_key})
+            security_keys.update({"signature_key": signature_key})
+
+        if security_keys != {}:
+
+            packetInfo.update({'security_keys': security_keys})
+
 
     return packetInfo
 
@@ -302,53 +324,75 @@ def captureBluetooth(packet):
     deviceInfo.update(checkDeviceInfo(packet,  role))
     connectionInfo.update(checkConnectionInfo(packet, role))
 
+    for entry, value in deviceInfo.copy().items():
 
-    if 'bd_addr' in deviceInfo.keys():
-
-        for entry, value in deviceInfo.copy().items():
+        if entry in ('bd_addr', 'address_randomized'):
 
             if entry == 'bd_addr':
-                bd_addr = value
+              bd_addr = value
 
-                if bd_addr not in app_data["devices"][role].keys():
+              if bd_addr not in app_data["devices"]['host'].keys():
+                if bd_addr not in app_data["devices"]['controller'].keys():
 
-                    app_data["devices"][role].update({bd_addr: BluetoothDevice(bd_addr=bd_addr)})
+                  app_data["devices"][role].update({
+                        bd_addr: BluetoothDevice(bd_addr=bd_addr,
+                                                 role=role,
+                                                 address_randomized=deviceInfo['address_randomized'])})
 
-                del deviceInfo[entry]
+            del deviceInfo[entry]
 
-            else:
+        else:
 
-                if bd_addr in app_data["devices"][role]:
+            for Role, Devices in app_data["devices"].copy().items():
+                for Address, Device in Devices.copy().items():
 
-                    device = app_data["devices"][role][bd_addr].getDbEntry()
-                    app_data["devices"][role][bd_addr].updateField('role', role)
+                    if Address == bd_addr:
 
-                    if entry == 'handle':
-                        app_data["devices"][role][bd_addr].updateConnections(value)
-                    else:
-                        app_data["devices"][role][bd_addr].updateField(entry, value)
+                        device_entry = Device.getDbEntry()
 
-                    del deviceInfo[entry]
+                        if entry == 'handle':
+                            Device.updateConnections(value)
 
-    if 'handle' in connectionInfo.keys():
+                        elif entry == 'security_keys':
 
-        for entry, value in connectionInfo.copy().items():
+                            #print(bd_addr, value)
+                            Device.updateSecurityKeys(value)
 
-            if entry == 'handle':
+                        else:
+                            Device.updateField(entry, value)
 
-                handle = value
+                        if Device.role != role:
 
-                if handle not in app_data["connections"]:
-                    app_data["connections"].update({handle: BluetoothConnection(handle=handle)})
+                          Device.role_switch -= 1
 
+                          if Device.role_switch == 0:
+
+                            Device.updateField('role', role)
+                            Device.role_switch = 3
+
+                            newRole = [key for key in app_data["devices"].keys() if key != role][0]
+                            app_data["devices"][newRole].update({Address: Device})
+                            del Devices[Address]
+
+                        del deviceInfo[entry]
+
+    for entry, value in connectionInfo.copy().items():
+
+        if entry == 'handle':
+
+            handle = value
+
+            if handle not in app_data["connections"]:
+                app_data["connections"].update({handle: BluetoothConnection(handle=handle)})
+
+            del connectionInfo[entry]
+
+        else:
+
+            if handle in app_data["connections"]:
+
+                app_data["connections"][handle].updateField(entry, value)
                 del connectionInfo[entry]
-
-            else:
-
-                if handle in app_data["connections"]:
-
-                    app_data["connections"][handle].updateField(entry, value)
-                    del connectionInfo[entry]
 
     # Evaluate Pairing Method if data is available
 
