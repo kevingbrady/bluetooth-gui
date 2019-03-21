@@ -8,8 +8,8 @@ import threading
 
 app = Flask(__name__)
 MongoClient = pymongo.MongoClient()
-db = MongoClient['bluetooth_data']
 
+db = MongoClient['bluetooth_data']
 capture = ""
 
 def clear_data():
@@ -25,7 +25,7 @@ def shutdown_server():
 @app.route("/capture", methods=['POST'])
 def capture_callback():
 
-    global capture
+    global capture, db
     arguments = request.json
 
     if arguments['capture_method'] == 'start':

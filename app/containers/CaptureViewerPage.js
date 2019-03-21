@@ -2,7 +2,7 @@
 //import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import CaptureViewer from '../components/CaptureViewer';
+import CaptureViewer from '../components/CaptureViewer/CaptureViewer';
 import * as captureActions from '../actions/capture';
 
 function mapStateToProps(state) {

@@ -1,6 +1,6 @@
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import Connections from '../components/Connections';
+import Connections from '../components/Connections/Connections';
 import * as connectionActions from '../actions/connections';
 
 function mapStateToProps(state) {

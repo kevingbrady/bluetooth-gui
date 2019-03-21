@@ -1,10 +1,10 @@
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import Devices from '../components/Devices';
+import Devices from '../components/Devices/Devices';
 import * as deviceActions from '../actions/devices';
 
 function mapStateToProps(state) {
-  
+
   return {
     devices: state.deviceReducer.devices
   };
