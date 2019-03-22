@@ -355,8 +355,9 @@ def captureBluetooth(packet):
 
                         elif entry == 'security_keys':
 
-                            #print(bd_addr, value)
-                            Device.updateSecurityKeys(value)
+                            print(bd_addr, value)
+                            Device['security_keys'].update(value)
+                            Device.updateSecurityKeys()
 
                         else:
                             Device.updateField(entry, value)

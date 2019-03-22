@@ -101,9 +101,7 @@ class BluetoothDevice:
                 }
         )
 
-    def updateSecurityKeys(self, key_item):
-
-        self.security_keys.update(key_item)
+    def updateSecurityKeys(self):
         self.collection.update(
           {"_id": self._id},
           {"$set": {
