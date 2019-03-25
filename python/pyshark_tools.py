@@ -102,8 +102,8 @@ def get_device_class_info(packet, layer):
 
     device_class_tree = packet[layer]._all_fields['btcommon.cod.class_of_device_tree']
 
-    device_class['major'] = device_class_tree['btcommon.cod.major_device_class']
-    device_class['minor'] = device_class_tree['btcommon.cod.minor_device_class']
+    device_class['major'] = int(device_class_tree['btcommon.cod.major_device_class'], 0)
+    device_class['minor'] = int(device_class_tree['btcommon.cod.minor_device_class'], 0)
 
     # Record available services
 

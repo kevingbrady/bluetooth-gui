@@ -163,7 +163,7 @@ var LESubEvents = {
   1: 'LE Connection Complete',
   2: 'LE Advertising Report',
   3: 'LE Connection Update Complete',
-  4: 'LE ead Remote USed Features Complete'
+  4: 'LE Read Remote Used Features Complete'
 }
 
 export default function getPacketOverview(packet){
@@ -217,7 +217,7 @@ function getPacketInfo(frame, layers) {
 
             } else if(eventCode == '62'){
 
-              let subEvent = parseInt(layers[key]['_all_fields']['bthci_evt*le_meta_subevent'], 0);          
+              let subEvent = parseInt(layers[key]['_all_fields']['bthci_evt*le_meta_subevent'], 0);
               packetInfo = LESubEvents[subEvent];
 
             } else{

@@ -11,7 +11,7 @@ class BluetoothDevice:
     bd_addr = ''
     address_randomized = False
     connections = set()
-    security_keys = {}
+    security_keys = []
     localhost_device_names = ['Source Device Name: ', 'Destination Device Name: ', None]
     role_switch = 3
 
@@ -80,17 +80,39 @@ class BluetoothDevice:
 
         if value not in ('', None):
 
+            entry = self.getDbEntry()
+
+            if entry.get(field) is not None:
+
+                if entry[field] == value:
+
+                    return
+
             self.collection.update(
                 {"_id": self._id},
                 {"$set": {
                     field: value
-                    }
                 }
-            )
+                })
+
+    def deleteField(self, field):
+
+        self.collection.update(
+            {"_id": self._id},
+            {"$unset": {field: ""}}
+        )
 
     def updateConnections(self, value):
 
         if value not in ('', None):
+
+            entry = self.getDbEntry()
+
+            if entry.get('connections') is not None:
+
+                if entry['connections'] == self.connections:
+
+                    return
 
             self.connections.add(value)
             self.collection.update(
@@ -99,14 +121,25 @@ class BluetoothDevice:
                     'connections': list(self.connections)
                 }
                 }
-        )
+            )
 
-    def updateSecurityKeys(self):
+    def updateSecurityKeys(self, key, value):
+
+        updateKey = 'security_keys.' + key
+
+        entry = self.getDbEntry()
+
+        if entry.get(updateKey) is not None:
+
+            if entry[updateKey] == value:
+
+                return
+
         self.collection.update(
           {"_id": self._id},
-          {"$set": {
-            'security_keys': self.security_keys
-          }}
+          {'$set':
+            {updateKey: value}
+           }
         )
 
 
@@ -118,7 +151,8 @@ class BluetoothDevice:
             self._id = self.collection.insert_one({
                  "role": self.role,
                  "bd_addr": self.bd_addr,
-                 "address_randomized": self.address_randomized
+                 "address_randomized": self.address_randomized,
+                 "security_keys": {}
             }).inserted_id
 
     def getDbEntry(self):
