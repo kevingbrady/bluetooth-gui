@@ -16,6 +16,16 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 
 var path = require('path');
+const { spawn } = require('child_process');
+
+var sep = '/';
+
+if (process.platform === 'win32'){
+  sep = "\\";
+}
+
+var flask_path = process.cwd() + sep + 'python'  + sep + 'run_capture.py';
+const flask_server = spawn('python3', [flask_path]);
 
 export default class AppUpdater {
   constructor() {
@@ -61,6 +71,12 @@ app.on('window-all-closed', () => {
   }
 });
 
+app.on('before-quit', ()=> {
+  flask_server.kill();
+  mainWindow.removeAllListeners('close');
+  mainWindow.close();
+  })
+
 app.on('ready', async () => {
   if (
     process.env.NODE_ENV === 'development' ||
@@ -93,6 +109,7 @@ app.on('ready', async () => {
 
   mainWindow.on('closed', () => {
     mainWindow = null;
+    app.quit();
   });
 
   const menuBuilder = new MenuBuilder(mainWindow);
