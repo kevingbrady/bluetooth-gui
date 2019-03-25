@@ -394,7 +394,7 @@ def captureBluetooth(packet):
 
                     if entry == 'simple_pairing_mode':
                         app_data["connections"][handle].simple_pairing_mode = True
-                        
+
                     # Evaluate Pairing Method if data is available
                     connection_entry = Connection.getDbEntry()
 
