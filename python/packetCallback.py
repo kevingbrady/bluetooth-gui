@@ -321,7 +321,7 @@ def captureBluetooth(packet):
     checkDeviceInfo(packet,  role)
     checkConnectionInfo(packet, role)
 
-    print(packet.number, role, deviceInfo[role])
+    #print(packet.number, role, deviceInfo[role])
 
     for entry, value in deviceInfo[role].copy().items():
 

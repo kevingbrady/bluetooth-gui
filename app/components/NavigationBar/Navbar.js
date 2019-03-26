@@ -7,6 +7,7 @@ import { ButtonToolbar,
 import routes from '../../constants/routes';
 import styles from './Navbar.css';
 import buildFileSelector from '../../middleware/capture_utils';
+import bluetoothLogo from '../../pictures/bluetooth-logo.png';
 
 var equal = require('fast-deep-equal');
 var localhost = '00:00:00:00:00:00';
@@ -167,7 +168,7 @@ export default class NavigationBar extends Component<Props> {
 
     return (
       <div className={styles.Navbar}>
-        <img className={styles.NavLogo} src="pictures/bluetooth-logo.png" />
+        <img className={styles.NavLogo} src={bluetoothLogo} />
         <div className={styles.alignText}>
           <Link className={styles.Link} to={routes.CAPTURE_VIEWER} replace>CaptureViewer</Link>
           <Link className={styles.Link} to={routes.DEVICES} replace>Devices</Link>

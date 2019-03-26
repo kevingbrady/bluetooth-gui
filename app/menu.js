@@ -1,11 +1,33 @@
 // @flow
 import { app, Menu, shell, BrowserWindow } from 'electron';
+const { spawn } = require('child_process');
 
 export default class MenuBuilder {
   mainWindow: BrowserWindow;
 
   constructor(mainWindow: BrowserWindow) {
+
+    let sep = '/';
+    let python_executor = 'python3'
+
+    if (process.platform === 'win32'){
+
+      python_executor = 'py';
+      sep = "\\";
+    }
+
+    this.flask_path = process.cwd() + sep + 'python'  + sep + 'run_capture.py';
+    this.flask_server = spawn(python_executor,
+                               [this.flask_path],
+                               {stdio: ['ignore', 'pipe', process.stderr]}
+                               );
+
     this.mainWindow = mainWindow;
+    this.mainWindow.on('closed', () => {
+        this.flask_server.kill();
+        this.mainWindow = null;
+    });
+
   }
 
   buildMenu() {
@@ -28,18 +50,21 @@ export default class MenuBuilder {
   }
 
   setupDevelopmentEnvironment() {
-    this.mainWindow.openDevTools();
-    this.mainWindow.webContents.on('context-menu', (e, props) => {
-      const { x, y } = props;
+    this.mainWindow.webContents.on('did-frame-finish-load', () => {
 
-      Menu.buildFromTemplate([
-        {
-          label: 'Inspect element',
-          click: () => {
-            this.mainWindow.inspectElement(x, y);
+      this.mainWindow.openDevTools();
+      this.mainWindow.webContents.on('context-menu', (e, props) => {
+        const { x, y } = props;
+
+        Menu.buildFromTemplate([
+          {
+            label: 'Inspect element',
+            click: () => {
+              this.mainWindow.inspectElement(x, y);
+            }
           }
-        }
-      ]).popup(this.mainWindow);
+        ]).popup(this.mainWindow);
+      });
     });
   }
 
@@ -193,7 +218,7 @@ export default class MenuBuilder {
             label: '&Close',
             accelerator: 'Ctrl+W',
             click: () => {
-              this.mainWindow.close();
+              app.quit();
             }
           }
         ]
