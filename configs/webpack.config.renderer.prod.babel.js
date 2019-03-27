@@ -199,7 +199,8 @@ export default merge.smart(baseConfig, {
      * development checks
      */
     new webpack.EnvironmentPlugin({
-      NODE_ENV: 'production'
+      NODE_ENV: 'production',
+      BLUETOOTH_PYTHON: path.join(__dirname, '..', 'python')
     }),
 
     new MiniCssExtractPlugin({

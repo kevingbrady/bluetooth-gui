@@ -64,6 +64,7 @@
       "app/app.html",
       "app/main.prod.js",
       "app/main.prod.js.map",
+      "python/run_capture.py",
       "package.json"
     ],
     "dmg": {
@@ -88,10 +89,7 @@
     },
     "linux": {
       "target": [
-        "deb",
-        "rpm",
-        "snap",
-        "AppImage"
+        "deb"
       ],
       "category": "Development"
     },
@@ -115,8 +113,7 @@
     "email": "kgb@nist.gov",
     "url": "https://github.com/kevingbrady"
   },
-  "contributors": [
-  ],
+  "contributors": [],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/kevingbrady/bluetooth-gui/issues"
@@ -142,7 +139,8 @@
     "moduleFileExtensions": [
       "js",
       "jsx",
-      "json"
+      "json",
+      "py"
     ],
     "transform": {
       "^.+\\.jsx?$": "babel-jest"

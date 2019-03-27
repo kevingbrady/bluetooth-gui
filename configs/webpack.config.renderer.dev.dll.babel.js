@@ -58,7 +58,8 @@ export default merge.smart(baseConfig, {
      * development checks
      */
     new webpack.EnvironmentPlugin({
-      NODE_ENV: 'development'
+      NODE_ENV: 'development',
+      BLUETOOTH_PYTHON: path.join(__dirname, '..', 'python')
     }),
 
     new webpack.LoaderOptionsPlugin({

@@ -10,7 +10,6 @@ import buildFileSelector from '../../middleware/capture_utils';
 import bluetoothLogo from '../../pictures/bluetooth-logo.png';
 
 var equal = require('fast-deep-equal');
-var localhost = '00:00:00:00:00:00';
 
 type Props = {
     getDevices: () => void,
@@ -40,23 +39,27 @@ export default class NavigationBar extends Component<Props> {
 
   componentDidUpdate(){
 
-    this.props.getDevices();
-    this.props.getConnections();
-    this.props.getRawData();
-
-    if(this.state.isRunningLive){
-      let tbody = document.getElementsByTagName('tbody')[0];
-      tbody.scrollTop = tbody.scrollHeight;
+    if(this.state.isRunningLive || this.state.isRunningFile){
+      this.handleDataFetch()
     }
   }
 
-  handleDataFetch(captureRunning){
+  handleDataFetch(){
 
     let interval = setInterval(() => {
 
-      this.forceUpdate();
+      this.props.getDevices();
+      this.props.getConnections();
+      this.props.getRawData();
 
-      if(!captureRunning){
+      if(this.state.isRunningLive){
+        let tbody = document.getElementsByTagName('tbody')[0];
+        if(tbody !== undefined){
+          tbody.scrollTop = tbody.scrollHeight;
+        }
+      }
+
+      if(!(this.state.isRunningLive || this.state.isRunningFile)){
         clearInterval(interval);
       }
     }, 1000);
@@ -88,8 +91,7 @@ export default class NavigationBar extends Component<Props> {
     } else {
 
 
-        this.setState((state) => ({ isRunningLive: true }));
-        this.handleDataFetch(this.state.isRunningLive);
+        this.setState((state) => ({ isRunningLive: true }))
 
         //Start Live Capture Here
         $.ajax({
@@ -143,7 +145,6 @@ export default class NavigationBar extends Component<Props> {
 
       filePath = event.target.files[0].path;
       this.setState({ isRunningFile: true });
-      this.handleDataFetch(this.state.isRunningFile);
 
       //Start File Capture Here
       $.ajax({
