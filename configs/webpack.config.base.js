@@ -6,22 +6,6 @@ import path from 'path';
 import webpack from 'webpack';
 import { dependencies } from '../package.json';
 
-var fs = require('fs');
-
-let pythonPath = path.join(__dirname, '..', 'app/constants') + '/pythonPath.json';
-
-let pythonFile = fs.readFileSync(pythonPath);
-pythonFile = JSON.parse(pythonFile);
-
-if(pythonFile.PYTHON_SERVER_PATH === ''){
-
-  pythonFile.PYTHON_SERVER_PATH = path.join(__dirname, '..', 'python')
-
-  fs.writeFile(pythonPath, JSON.stringify(pythonFile), (error) => {
-    if(error) throw error;
-  });
-}
-
 export default {
   externals: [...Object.keys(dependencies || {})],
 

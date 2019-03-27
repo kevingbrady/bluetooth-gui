@@ -224,8 +224,7 @@ export default merge.smart(baseConfig, {
      * 'staging', for example, by changing the ENV variables in the npm scripts
      */
     new webpack.EnvironmentPlugin({
-      NODE_ENV: 'development',
-      BLUETOOTH_PYTHON: path.join(__dirname, '..', 'python')
+      NODE_ENV: 'development'
     }),
 
     new webpack.LoaderOptionsPlugin({

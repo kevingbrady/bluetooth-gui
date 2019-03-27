@@ -17,7 +17,6 @@ export default class MenuBuilder {
       sep = "\\";
     }
 
-    console.log(pythonPath.PYTHON_SERVER_PATH);
     this.flask_path = pythonPath.PYTHON_SERVER_PATH + sep + 'run_capture.py';
     this.flask_server = spawn(python_executor,
                                [this.flask_path],
