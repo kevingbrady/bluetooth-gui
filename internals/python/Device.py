@@ -7,14 +7,20 @@ db = MongoClient['bluetooth_data']
 class BluetoothDevice:
 
     _id = ''
+    role = ''
     bd_addr = ''
+    address_randomized = False
     connections = set()
+    security_keys = []
     localhost_device_names = ['Source Device Name: ', 'Destination Device Name: ', None]
+    role_switch = 3
 
     def __init__(self, *args, **kwargs):
 
         self.collection = db['Devices']
+        self.role = kwargs.get('role')
         self.bd_addr = kwargs.get('bd_addr')
+        self.address_randomized = kwargs.get('address_randomized')
         self.createDbEntry()
 
     @staticmethod
@@ -74,17 +80,39 @@ class BluetoothDevice:
 
         if value not in ('', None):
 
+            entry = self.getDbEntry()
+
+            if entry.get(field) is not None:
+
+                if entry[field] == value:
+
+                    return
+
             self.collection.update(
                 {"_id": self._id},
                 {"$set": {
                     field: value
-                    }
                 }
-            )
+                })
+
+    def deleteField(self, field):
+
+        self.collection.update(
+            {"_id": self._id},
+            {"$unset": {field: ""}}
+        )
 
     def updateConnections(self, value):
 
         if value not in ('', None):
+
+            entry = self.getDbEntry()
+
+            if entry.get('connections') is not None:
+
+                if entry['connections'] == self.connections:
+
+                    return
 
             self.connections.add(value)
             self.collection.update(
@@ -95,13 +123,36 @@ class BluetoothDevice:
                 }
             )
 
+    def updateSecurityKeys(self, key, value):
+
+        updateKey = 'security_keys.' + key
+
+        entry = self.getDbEntry()
+
+        if entry.get(updateKey) is not None:
+
+            if entry[updateKey] == value:
+
+                return
+
+        self.collection.update(
+          {"_id": self._id},
+          {'$set':
+            {updateKey: value}
+           }
+        )
+
+
     def createDbEntry(self):
 
         entry = self.getDbEntry()
 
         if entry is None:
             self._id = self.collection.insert_one({
-                 "bd_addr": self.bd_addr
+                 "role": self.role,
+                 "bd_addr": self.bd_addr,
+                 "address_randomized": self.address_randomized,
+                 "security_keys": {}
             }).inserted_id
 
     def getDbEntry(self):

@@ -61,6 +61,11 @@ app.on('window-all-closed', () => {
   }
 });
 
+app.on('before-quit', ()=> {
+  mainWindow.removeAllListeners('close');
+  mainWindow.close();
+  })
+
 app.on('ready', async () => {
   if (
     process.env.NODE_ENV === 'development' ||
@@ -89,10 +94,6 @@ app.on('ready', async () => {
       mainWindow.show();
       mainWindow.focus();
     }
-  });
-
-  mainWindow.on('closed', () => {
-    mainWindow = null;
   });
 
   const menuBuilder = new MenuBuilder(mainWindow);

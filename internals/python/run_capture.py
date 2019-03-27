@@ -66,7 +66,7 @@ def capture_callback():
 
         packetCallback.db = db
         packetCallback.advertisingAddresses = []
-        packetCallback.deviceInfo = {}
+        packetCallback.deviceInfo = {'host': {}, 'controller': {}}
         packetCallback.connectionInfo = {}
         packetCallback.handle = ""
         packetCallback.bd_addr = ""

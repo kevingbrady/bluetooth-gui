@@ -7,6 +7,7 @@ class BluetoothConnection:
     _id = ''
     handle = ''
     standard_name_responses = ['Source Device Name: ', 'Destination Device Name: ']
+    simple_pairing_mode = False
 
     def __init__(self, *args, **kwargs):
 
@@ -20,9 +21,12 @@ class BluetoothConnection:
         Just_Works = "Just Works (Unauthenticated)"
         Passkey_Entry = "Passkey Entry (Authenticated)"
         Numeric_Comparison = "Numeric Comparison (LE Secure Connection)"
-
         secureConnection = False
-        pairing_method = 'Unknown'
+        pairing_method = "Unknown"
+
+        if self.simple_pairing_mode is True:
+
+            pairing_method = "Legacy Connection"
 
         if all(h in host for h in ('secure_connection_flag',
                                    'mitm_flag',
@@ -37,14 +41,14 @@ class BluetoothConnection:
 
                 if host['oob_flag'] is 1 and controller['oob_flag'] is 1:
 
-                    pairing_method =  "OOB Pairing"
+                    pairing_method = "OOB Pairing"
 
                 else:
 
                     if secureConnection is True:
 
                         if host['oob_flag'] is 1 or controller['oob_flag'] is 1:
-                            pairing_method =  "OOB Pairing"
+                            pairing_method = "OOB Pairing"
 
                     elif host['mitm_flag'] is not 1 and controller['mitm_flag'] is not 1:
                         pass
@@ -85,16 +89,16 @@ class BluetoothConnection:
 
         self.updateField("pairing_method", pairing_method)
 
-    def inDatabase(self):
-
-        if self._id is '':
-            return False
-
-        return True
-
     def updateField(self, field, value):
 
         if value not in ('', None):
+
+            entry = self.getDbEntry()
+
+            if entry.get(field) is not None:
+                if entry[field] == value:
+                    return
+
             self.collection.update(
                 {"_id": self._id},
                 {"$set": {
