@@ -1,5 +1,5 @@
 Flask==1.0.2
 netifaces==0.10.4
 pymongo==3.7.2
-pyshark-legacy==0.3.8
+pyshark==0.3.8
 pyshark-parser==0.1

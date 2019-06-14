@@ -113,7 +113,7 @@ def checkDeviceInfo(packet, role):
 
         if is_field_here(packet, layer, "lmp_features.simultaneous_le_and_br_edr.host"):
             simultaneous_bdr_le = get_field(packet, layer, "lmp_features.simultaneous_le_and_br_edr.host")
-            deviceInfo[role].update({"simultaneous_bdr_le", simultaneous_bdr_le})
+            deviceInfo[role].update({"simultaneous_bdr_le": simultaneous_bdr_le})
 
         if is_field_here(packet, layer, "auth_requirements"):
             auth_requirements = get_field(packet, layer, 'auth_requirements')

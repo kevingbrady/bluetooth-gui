@@ -196,17 +196,17 @@ function getPacketInfo(frame, layers) {
 
       for(let key in layers){
 
-        if(layers[key]['_full_name'] === 'hci_h4'){
+        if(layers[key]['_layer_name'] === 'hci_h4'){
 
           direction = getDirection(layers[key]['_all_fields']['hci_h4*direction'])
 
         }
-        else if(layers[key]['_full_name'] === 'bthci_cmd'){
+        else if(layers[key]['_layer_name'] === 'bthci_cmd'){
             packetType = "Command";
             packetInfo = getHCICommand(frame, layers[key]['_all_fields']['bthci_cmd*opcode'])
 
           }
-        else if(layers[key]['_full_name'] === 'bthci_evt'){
+        else if(layers[key]['_layer_name'] === 'bthci_evt'){
             packetType = "Event";
 
             let eventCode = layers[key]['_all_fields']['bthci_evt*code']
@@ -224,15 +224,15 @@ function getPacketInfo(frame, layers) {
               packetInfo = getHCIEvent(frame, eventCode);
             }
           }
-        else if(layers[key]['_full_name'] === 'bthci_acl'){
+        else if(layers[key]['_layer_name'] === 'bthci_acl'){
             packetType = "ACL Data";
 
           }
-        else if(layers[key]['_full_name'] === 'btsmp'){
+        else if(layers[key]['_layer_name'] === 'btsmp'){
             let smp_code = parseInt(layers[key]['_all_fields']['btsmp*opcode'], 0);
             packetInfo = getSMPInfo(frame, smp_code);
         }
-        else if(layers[key]['_full_name'] === 'bthci_sco'){
+        else if(layers[key]['_layer_name'] === 'bthci_sco'){
             if(packetType === ""){
               packetType = "SCO Data";
             }

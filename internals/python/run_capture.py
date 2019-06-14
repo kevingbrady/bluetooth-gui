@@ -1,10 +1,10 @@
-from pyshark import *
+import pyshark
 import sys
 from flask import Flask, jsonify, request
-import packetCallback
 import pymongo
 import os
 import threading
+import packetCallback
 
 app = Flask(__name__)
 MongoClient = pymongo.MongoClient()
@@ -12,15 +12,18 @@ MongoClient = pymongo.MongoClient()
 db = MongoClient['bluetooth_data']
 capture = ""
 
+
 def clear_data():
     db['raw_data'].delete_many({})
     db['Devices'].delete_many({})
     db['Connections'].delete_many({})
 
+
 @app.route("/shutdown", methods=['POST'])
 def shutdown_server():
     main_thread_id = threading.main_thread().ident
     os.kill(main_thread_id, 15)
+
 
 @app.route("/capture", methods=['POST'])
 def capture_callback():
@@ -43,13 +46,12 @@ def capture_callback():
             if sys.platform != 'linux':
                 return jsonify({'result': 'Live Capture Only Available in Linux'})
 
-            capture = LiveCapture(interface='bluetooth0')
+            capture = pyshark.LiveCapture(interface='bluetooth0')
 
         elif arguments['capture_type'] == 'file':
-            capture = FileCapture(arguments['capture_file'])
+            capture = pyshark.FileCapture(arguments['capture_file'])
 
         capture.set_debug(True)
-        capture.use_json = True
         capture.keep_packets = False
 
         # Reset Capture variables before running new capture

@@ -1,0 +1,1 @@
+curl -d '{"capture_method":"start", "capture_type":"file", "capture_file": "/home/kgb/pscr_devices/Zephyr_HR_Monitor.log"}' -H "Content-Type: application/json" -X POST http://localhost:5000/capture
