@@ -81,7 +81,11 @@ export default class NavigationBar extends Component<Props> {
                               capture_type: 'live'}),
         success: (response) => {
           // Stop Live Capture Here
-          this.setState((state) => ({ isRunningLive: false }));
+          this.setState(state => {
+            return {
+              isRunningLive: false
+            }
+          });
           alert(response['result']);
         },
         dataType: 'json',
@@ -91,7 +95,11 @@ export default class NavigationBar extends Component<Props> {
     } else {
 
 
-        this.setState((state) => ({ isRunningLive: true }))
+      this.setState(state => {
+        return {
+          isRunningLive: true
+        }
+      });
 
         //Start Live Capture Here
         $.ajax({
@@ -125,7 +133,11 @@ export default class NavigationBar extends Component<Props> {
                 success: (response) => {
                   alert(response['result']);
                   filePath = '';
-                  this.setState({ isRunningFile: false });
+                  this.setState(state => {
+                    return {
+                      isRunningFile: false
+                    }
+                  });
                 },
                 dataType: 'json',
                 contentType: 'application/json;charset=UTF-8'
@@ -144,7 +156,11 @@ export default class NavigationBar extends Component<Props> {
     if(event.target.files.length > 0){
 
       filePath = event.target.files[0].path;
-      this.setState({ isRunningFile: true });
+      this.setState(state => {
+        return {
+          isRunningFile: true
+        }
+      });
 
       //Start File Capture Here
       $.ajax({
@@ -155,7 +171,11 @@ export default class NavigationBar extends Component<Props> {
                               capture_file: filePath }),
         success: (response) => {
 
-          this.setState({ isRunningFile: false })
+          this.setState(state => {
+            return {
+              isRunningFile: false
+            }
+          });
         },
         dataType: 'json',
         contentType: 'application/json;charset=UTF-8'

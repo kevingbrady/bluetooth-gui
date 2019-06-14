@@ -34,6 +34,7 @@ export default class CaptureViewer extends Component<Props> {
     super(props)
     this.state = { rowSelection: rowSelection }
 
+    this.handleRowSelect = this.handleRowSelect.bind(this);
   }
 
   shouldComponentUpdate(nextProps, nextState){
@@ -55,15 +56,13 @@ export default class CaptureViewer extends Component<Props> {
     return false;
   }
 
-  getRowOptions(){
-
-    return {
-        onClick: (e, row, rowIdx) => {
-
-            rowSelection = parseInt(row['frame_number'], 10);
-            this.setState({ rowSelection: rowSelection });
+  handleRowSelect(row){
+    rowSelection = parseInt(row['frame_number'], 10);
+    this.setState(state => {
+      return {
+          rowSelection: rowSelection
         }
-      }
+      });
   }
 
   getScrollHeight(){
@@ -121,8 +120,8 @@ export default class CaptureViewer extends Component<Props> {
 
   getRowStyle(row, rowIdx){
 
-    return { backgroundColor: rowIdx % 2 === 0 ? 'white': 'whitesmoke',
-
+    return {
+      backgroundColor: rowIdx % 2 === 0 ? 'white': 'whitesmoke',
               }
   }
 
@@ -130,14 +129,14 @@ export default class CaptureViewer extends Component<Props> {
 
     return {
       mode: 'radio',
-      selected: [this.state.rowSelection],
       clickToSelect: true,
       hideSelectColumn: true,
+      onSelect: this.handleRowSelect,
       style: {
         backgroundColor: 'darkblue',
-        fontWeight: 'bolder',
-        color: 'white'
-             }
+        color: 'white',
+        fontWeight: 'bolder'
+      }
     }
 
   }
@@ -165,7 +164,6 @@ export default class CaptureViewer extends Component<Props> {
                       remote={{pagination: false, filter: false, search: false}}
                       classes={styles.captureTable}
                       rowStyle={this.getRowStyle}
-                      rowEvents={this.getRowOptions()}
                       selectRow={this.selectRowOptions()}
                       noDataIndication={noDataIndication}
                       bootstrap4={true}
