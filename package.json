@@ -253,7 +253,7 @@
     "electron-updater": "^4.0.6",
     "fast-deep-equal": "^2.0.1",
     "history": "^4.7.2",
-    "jquery": "^3.3.1",
+    "jquery": "^3.5.0",
     "mongodb": "^3.1.13",
     "prop-types": "^15.7.2",
     "react": "^16.6.3",
